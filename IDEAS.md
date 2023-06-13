@@ -9,7 +9,7 @@ Base board:
 - RAM memory (56 kB) - use 512 kB IC, possibly expandable?
 - SD card + LED + auxiliary IC?
 - Debugger pinout (the debugger is an AVR + FTDI)
-- Expander pins (to the expansion board): A0~7, D0~7, memory pins, interrupt
+- Expander pins (to the expansion board): `A0~7`, `D0~7`, memory pins, interrupt
 
 Debugger board:
 - AVR
