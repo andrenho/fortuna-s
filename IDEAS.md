@@ -11,6 +11,11 @@ Base board:
 - Debugger pinout (the debugger is an AVR + FTDI)
 - Expander pins (to the expansion board): A0~7, D0~7, memory pins, interrupt
 
+Debugger board:
+- AVR
+- Programmer
+- FTDI (?)
+
 The debugger will do the following functions:
 - Computer interface via serial
 - Run using serial I/O (simulate keyboard and character output)
