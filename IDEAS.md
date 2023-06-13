@@ -2,6 +2,7 @@
 
 Base board:
 - Power input + power led + on/off switch
+  - Maybe power from FTDI?
 - Z80 running at 6 Mhz (?)
   - reset button
   - clock generator
