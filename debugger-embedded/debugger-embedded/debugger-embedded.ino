@@ -240,6 +240,7 @@ public:
     Serial.print(digitalRead(RD) == LOW ? "RD " : "");
     Serial.print(digitalRead(BUSAK) == LOW ? "BUSAK " : "");
     Serial.print(digitalRead(IORQ) == LOW ? "IORQ " : "");
+    Serial.print(digitalRead(INT) == LOW ? "INT " : "");
     Serial.println();
   }
 
