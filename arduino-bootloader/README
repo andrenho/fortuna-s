@@ -1,0 +1,4 @@
+This is for burning the arduino bootloader into the Arduino Mega 2560 using
+a SPI cable.
+
+Just type "make upload".
