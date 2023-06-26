@@ -140,7 +140,7 @@ public:
     pinMode(MREQ, OUTPUT);
     digitalWrite(ROM_WE, LOW);
     digitalWrite(MREQ, LOW);
-    delayMicroseconds(1000);
+    delayMicroseconds(5000);
     pinMode(ROM_WE, INPUT);
     pinMode(MREQ, INPUT);
     delayMicroseconds(100);
