@@ -81,6 +81,19 @@ public:
     data |= (digitalRead(D7) == HIGH ? (1 << 7) : 0);
     return data;
   }
+
+  static void setData(uint8_t data) {
+    setBusControl(true);
+    digitalWrite(D0, (data & (1 << 0)) != 0 ? HIGH : LOW);
+    digitalWrite(D1, (data & (1 << 1)) != 0 ? HIGH : LOW);
+    digitalWrite(D2, (data & (1 << 2)) != 0 ? HIGH : LOW);
+    digitalWrite(D3, (data & (1 << 3)) != 0 ? HIGH : LOW);
+    digitalWrite(D4, (data & (1 << 4)) != 0 ? HIGH : LOW);
+    digitalWrite(D5, (data & (1 << 5)) != 0 ? HIGH : LOW);
+    digitalWrite(D6, (data & (1 << 6)) != 0 ? HIGH : LOW);
+    digitalWrite(D7, (data & (1 << 7)) != 0 ? HIGH : LOW);
+  }
+
 };
 
 class Z80 {
@@ -105,7 +118,7 @@ public:
     digitalWrite(ROM_WE, HIGH);
   }
 
-  static uint8_t read_addr(uint32_t addr) {
+  static uint8_t read(uint32_t addr) {
     AddressBus::setAddress(addr);
     pinMode(RD, OUTPUT);
     pinMode(MREQ, OUTPUT);
@@ -118,6 +131,27 @@ public:
     pinMode(MREQ, INPUT);
     AddressBus::setBusControl(false);
     return data;
+  }
+
+  static bool write(uint32_t addr, uint8_t data) {
+    AddressBus::setAddress(addr);
+    DataBus::setData(data);
+    pinMode(WR, OUTPUT);
+    pinMode(MREQ, OUTPUT);
+    digitalWrite(WR, LOW);
+    digitalWrite(MREQ, LOW);
+    delayMicroseconds(100);
+    pinMode(WR, INPUT);
+    pinMode(MREQ, INPUT);
+    delayMicroseconds(100);
+
+    for (size_t i = 0; i < 1000; ++i) {
+      if (read(addr) == data)
+        return true;
+      delayMicroseconds(100);
+    }
+
+    return false;
   }
 
 };
@@ -140,9 +174,17 @@ void loop() {
       case 'r': {  // read byte from memory position
         uint32_t addr = Serial.parseInt();
         Z80::releaseBus();
-        Serial.println((int) ROM::read_addr(addr));
+        Serial.println(ROM::read(addr));
         break;
-      } 
+      }
+
+      case 'w': {   // write byte to memory position
+        uint32_t addr = Serial.parseInt();
+        uint8_t data = Serial.parseInt();
+        Z80::releaseBus();
+        bool success = ROM::write(addr, data);
+        Serial.println(success ? '+' : 'x');
+      }
       
       case 10:  // ignore line breaks
       case 13:
