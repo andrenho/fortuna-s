@@ -136,12 +136,12 @@ public:
   static bool write(uint32_t addr, uint8_t data) {
     AddressBus::setAddress(addr);
     DataBus::setData(data);
-    pinMode(WR, OUTPUT);
+    pinMode(ROM_WE, OUTPUT);
     pinMode(MREQ, OUTPUT);
-    digitalWrite(WR, LOW);
+    digitalWrite(ROM_WE, LOW);
     digitalWrite(MREQ, LOW);
-    delayMicroseconds(100);
-    pinMode(WR, INPUT);
+    delayMicroseconds(1000);
+    pinMode(ROM_WE, INPUT);
     pinMode(MREQ, INPUT);
     delayMicroseconds(100);
 
