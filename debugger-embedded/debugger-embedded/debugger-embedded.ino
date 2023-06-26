@@ -106,6 +106,11 @@ public:
   }
 
   static void releaseBus() {
+    // TODO
+    digitalWrite(RD, HIGH);
+    digitalWrite(MREQ, HIGH);
+    digitalWrite(ROM_WE, HIGH);
+    digitalWrite(WR, HIGH);
   }  
 
 };
@@ -127,6 +132,8 @@ public:
     delayMicroseconds(100);
     uint8_t data = DataBus::getData();
     // for (;;);
+    digitalWrite(RD, HIGH);
+    digitalWrite(MREQ, HIGH);
     pinMode(RD, INPUT);
     pinMode(MREQ, INPUT);
     AddressBus::setBusControl(false);
@@ -134,14 +141,18 @@ public:
   }
 
   static bool write(uint32_t addr, uint8_t data) {
+    auto wrPin = (addr < 0x2000) ? ROM_WE : WR;
     AddressBus::setAddress(addr);
     DataBus::setData(data);
-    pinMode(ROM_WE, OUTPUT);
+    pinMode(wrPin, OUTPUT);
     pinMode(MREQ, OUTPUT);
-    digitalWrite(ROM_WE, LOW);
+    digitalWrite(wrPin, LOW);
     digitalWrite(MREQ, LOW);
-    delayMicroseconds(5000);
-    pinMode(ROM_WE, INPUT);
+    delayMicroseconds(100);
+    // for (;;);
+    digitalWrite(wrPin, HIGH);
+    digitalWrite(MREQ, HIGH);
+    pinMode(wrPin, INPUT);
     pinMode(MREQ, INPUT);
     delayMicroseconds(100);
 
