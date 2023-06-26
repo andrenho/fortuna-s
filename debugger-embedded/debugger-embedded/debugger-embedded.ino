@@ -7,46 +7,147 @@ typedef enum {
   BUSAK = 41, WR = 43, RD = 45, ROM_WE = 47,
 } Pin;
 
+
+class AddressBus {
+public:
+
+  static void setBusControl(bool control) {
+    auto mode = control ? OUTPUT : INPUT;
+    pinMode(A0_, control);
+    pinMode(A1_, control);
+    pinMode(A2_, control);
+    pinMode(A3_, control);
+    pinMode(A4_, control);
+    pinMode(A5_, control);
+    pinMode(A6_, control);
+    pinMode(A7_, control);
+    pinMode(A8_, control);
+    pinMode(A9_, control);
+    pinMode(A10_, control);
+    pinMode(A11_, control);
+    pinMode(A12_, control);
+    pinMode(A13_, control);
+    pinMode(A14_, control);
+    pinMode(A15_, control);
+  }
+
+  static void setAddress(uint32_t addr) {
+    setBusControl(true);
+    digitalWrite(A0_, (addr & (1 << 0)) != 0 ? HIGH : LOW);
+    digitalWrite(A1_, (addr & (1 << 1)) != 0 ? HIGH : LOW);
+    digitalWrite(A2_, (addr & (1 << 2)) != 0 ? HIGH : LOW);
+    digitalWrite(A3_, (addr & (1 << 3)) != 0 ? HIGH : LOW);
+    digitalWrite(A4_, (addr & (1 << 4)) != 0 ? HIGH : LOW);
+    digitalWrite(A5_, (addr & (1 << 5)) != 0 ? HIGH : LOW);
+    digitalWrite(A6_, (addr & (1 << 6)) != 0 ? HIGH : LOW);
+    digitalWrite(A7_, (addr & (1 << 7)) != 0 ? HIGH : LOW);
+    digitalWrite(A8_, (addr & (1 << 8)) != 0 ? HIGH : LOW);
+    digitalWrite(A9_, (addr & (1 << 9)) != 0 ? HIGH : LOW);
+    digitalWrite(A10_, (addr & (1 << 10)) != 0 ? HIGH : LOW);
+    digitalWrite(A11_, (addr & (1 << 11)) != 0 ? HIGH : LOW);
+    digitalWrite(A12_, (addr & (1 << 12)) != 0 ? HIGH : LOW);
+    digitalWrite(A13_, (addr & (1 << 13)) != 0 ? HIGH : LOW);
+    digitalWrite(A14_, (addr & (1 << 14)) != 0 ? HIGH : LOW);
+    digitalWrite(A15_, (addr & (1 << 15)) != 0 ? HIGH : LOW);
+  }
+
+};
+
+class DataBus {
+public:
+
+  static void setBusControl(bool control) {
+    auto mode = control ? OUTPUT : INPUT;
+    pinMode(D0, control);
+    pinMode(D1, control);
+    pinMode(D2, control);
+    pinMode(D3, control);
+    pinMode(D4, control);
+    pinMode(D5, control);
+    pinMode(D6, control);
+    pinMode(D7, control);
+  }
+
+  static uint8_t getData() {
+    setBusControl(false);
+    uint8_t data = 0;
+    data |= digitalRead(D0) == HIGH ? (1 << 0) : 0;
+    data |= digitalRead(D1) == HIGH ? (1 << 1) : 0;
+    data |= digitalRead(D2) == HIGH ? (1 << 2) : 0;
+    data |= digitalRead(D3) == HIGH ? (1 << 3) : 0;
+    data |= digitalRead(D4) == HIGH ? (1 << 4) : 0;
+    data |= digitalRead(D5) == HIGH ? (1 << 5) : 0;
+    data |= digitalRead(D6) == HIGH ? (1 << 6) : 0;
+    data |= digitalRead(D7) == HIGH ? (1 << 7) : 0;
+    return data;
+  }
+};
+
 class Z80 {
 public:
+
   static void initialize() {
     pinMode(CLK, OUTPUT);
     pinMode(RST, OUTPUT);
-  }
-
-  static void cycle() {
-    digitalWrite(CLK, HIGH);
-    delayMicroseconds(100);
-    digitalWrite(CLK, LOW);
-    delayMicroseconds(100);
-  }
-
-  static void reset() {
     digitalWrite(RST, LOW);
-    for (size_t i = 0; i < 50; ++i)
-      cycle();
-    digitalWrite(RST, HIGH);
   }
-  
+
+  static void releaseBus() {
+  }  
+
+};
+
+class ROM {
+public:
+
+  static void initialize() {
+    pinMode(ROM_WE, OUTPUT);
+    digitalWrite(ROM_WE, HIGH);
+  }
+
+  static uint8_t read_addr(uint32_t addr) {
+    AddressBus::setAddress(addr);
+    pinMode(RD, OUTPUT);
+    pinMode(MREQ, OUTPUT);
+    digitalWrite(RD, LOW);
+    digitalWrite(MREQ, LOW);
+    delayMicroseconds(100);
+    uint8_t data = DataBus::getData();
+    for (;;);
+    pinMode(RD, INPUT);
+    pinMode(MREQ, INPUT);
+    AddressBus::setBusControl(false);
+  }
+
 };
 
 void setup() {
-  Z80::initialize();
-  Z80::reset();
   Serial.begin(9600);
+  Z80::initialize();
+  ROM::initialize();
 }
 
 void loop() {
   if (Serial.available() > 0) {
     char c = Serial.read();
     switch (c) {
-      case 'h':
+
+      case 'h':  // acknowledgement
         Serial.println('+');
         break;
-      case 10:
+
+      case 'r': {  // read byte from memory position
+        uint32_t addr = Serial.parseInt();
+        Z80::releaseBus();
+        Serial.println(ROM::read_addr(addr));
+        break;
+      } 
+      
+      case 10:  // ignore line breaks
       case 13:
-        break;  // ignore line breaks
-      default:
+        break;
+      
+      default:  // command not recognized
         Serial.println('x');
     }
   }
