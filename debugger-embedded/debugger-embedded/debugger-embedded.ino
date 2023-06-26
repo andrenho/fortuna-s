@@ -1,7 +1,7 @@
 typedef enum {
   D0 = 16, D1 = 18, D2 = 12, D3 = 4, D4 = 2, D5 = 6, D6 = 8, D7 = 14,
-  A0_ = 65, A1_ = 63, A2_ = 61, A3_ = 59, A4_ = 57, A5_ = 55, A6_ = 62, A7_ = 60,
-  A8_ = 58, A9_ = 56, A10_ = 54, A11_ = 10, A12_ = 11, A13_ = 9, A14_ = 7, A15_ = 5,
+  A0_ = 65, A1_ = 63, A2_ = 61, A3_ = 59, A4_ = 57, A5_ = 55, A6_ = 54, A7_ = 56,
+  A8_ = 58, A9_ = 60, A10_ = 62, A11_ = 10, A12_ = 11, A13_ = 9, A14_ = 7, A15_ = 5,
   A16_ = 24, A17_ = 69, A18_ = 39,
   INT = 20, CLK = 3, NMI = 22, MREQ = 26, IORQ = 28, M1 = 33, RST = 35, BUSRQ = 37,
   BUSAK = 41, WR = 43, RD = 45, ROM_WE = 47,
@@ -13,22 +13,22 @@ public:
 
   static void setBusControl(bool control) {
     auto mode = control ? OUTPUT : INPUT;
-    pinMode(A0_, control);
-    pinMode(A1_, control);
-    pinMode(A2_, control);
-    pinMode(A3_, control);
-    pinMode(A4_, control);
-    pinMode(A5_, control);
-    pinMode(A6_, control);
-    pinMode(A7_, control);
-    pinMode(A8_, control);
-    pinMode(A9_, control);
-    pinMode(A10_, control);
-    pinMode(A11_, control);
-    pinMode(A12_, control);
-    pinMode(A13_, control);
-    pinMode(A14_, control);
-    pinMode(A15_, control);
+    pinMode(A0_, mode);
+    pinMode(A1_, mode);
+    pinMode(A2_, mode);
+    pinMode(A3_, mode);
+    pinMode(A4_, mode);
+    pinMode(A5_, mode);
+    pinMode(A6_, mode);
+    pinMode(A7_, mode);
+    pinMode(A8_, mode);
+    pinMode(A9_, mode);
+    pinMode(A10_, mode);
+    pinMode(A11_, mode);
+    pinMode(A12_, mode);
+    pinMode(A13_, mode);
+    pinMode(A14_, mode);
+    pinMode(A15_, mode);
   }
 
   static void setAddress(uint32_t addr) {
@@ -58,27 +58,27 @@ public:
 
   static void setBusControl(bool control) {
     auto mode = control ? OUTPUT : INPUT;
-    pinMode(D0, control);
-    pinMode(D1, control);
-    pinMode(D2, control);
-    pinMode(D3, control);
-    pinMode(D4, control);
-    pinMode(D5, control);
-    pinMode(D6, control);
-    pinMode(D7, control);
+    pinMode(D0, mode);
+    pinMode(D1, mode);
+    pinMode(D2, mode);
+    pinMode(D3, mode);
+    pinMode(D4, mode);
+    pinMode(D5, mode);
+    pinMode(D6, mode);
+    pinMode(D7, mode);
   }
 
   static uint8_t getData() {
     setBusControl(false);
-    uint8_t data = 0;
-    data |= digitalRead(D0) == HIGH ? (1 << 0) : 0;
-    data |= digitalRead(D1) == HIGH ? (1 << 1) : 0;
-    data |= digitalRead(D2) == HIGH ? (1 << 2) : 0;
-    data |= digitalRead(D3) == HIGH ? (1 << 3) : 0;
-    data |= digitalRead(D4) == HIGH ? (1 << 4) : 0;
-    data |= digitalRead(D5) == HIGH ? (1 << 5) : 0;
-    data |= digitalRead(D6) == HIGH ? (1 << 6) : 0;
-    data |= digitalRead(D7) == HIGH ? (1 << 7) : 0;
+    uint8_t data = 0x0;
+    data |= (digitalRead(D0) == HIGH ? (1 << 0) : 0);
+    data |= (digitalRead(D1) == HIGH ? (1 << 1) : 0);
+    data |= (digitalRead(D2) == HIGH ? (1 << 2) : 0);
+    data |= (digitalRead(D3) == HIGH ? (1 << 3) : 0);
+    data |= (digitalRead(D4) == HIGH ? (1 << 4) : 0);
+    data |= (digitalRead(D5) == HIGH ? (1 << 5) : 0);
+    data |= (digitalRead(D6) == HIGH ? (1 << 6) : 0);
+    data |= (digitalRead(D7) == HIGH ? (1 << 7) : 0);
     return data;
   }
 };
@@ -113,10 +113,11 @@ public:
     digitalWrite(MREQ, LOW);
     delayMicroseconds(100);
     uint8_t data = DataBus::getData();
-    for (;;);
+    // for (;;);
     pinMode(RD, INPUT);
     pinMode(MREQ, INPUT);
     AddressBus::setBusControl(false);
+    return data;
   }
 
 };
@@ -139,7 +140,7 @@ void loop() {
       case 'r': {  // read byte from memory position
         uint32_t addr = Serial.parseInt();
         Z80::releaseBus();
-        Serial.println(ROM::read_addr(addr));
+        Serial.println((int) ROM::read_addr(addr));
         break;
       } 
       
