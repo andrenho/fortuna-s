@@ -124,7 +124,9 @@ public:
   static void initialize() {
     pinMode(CLK, OUTPUT);
     pinMode(RST, OUTPUT);
+    pinMode(BUSRQ, OUTPUT);
     digitalWrite(RST, LOW);
+    digitalWrite(BUSRQ, HIGH);
   }
 
   static void cycle() {
@@ -152,11 +154,28 @@ public:
   }
 
   static void releaseBus() {
-    // TODO
+    if (digitalRead(RST) == HIGH) {
+      digitalWrite(BUSRQ, LOW);
+      while (digitalRead(BUSAK) != LOW) {
+        cycle();
+        printState();
+      }
+    }
+
     digitalWrite(RD, HIGH);
     digitalWrite(MREQ, HIGH);
     digitalWrite(ROM_WE, HIGH);
     digitalWrite(WR, HIGH);
+  }
+
+  static void takeOverBus() {
+    if (digitalRead(RST) == HIGH) {
+      digitalWrite(BUSRQ, HIGH);
+      while (digitalRead(BUSAK) != HIGH) {
+        cycle();
+        printState();
+      }
+    }
   }
 
   static void printState() {
@@ -268,22 +287,32 @@ void loop() {
         break;
       }
 
-      case 'R':
+      case 'R':  // reset Z80
         Z80::reset();
         Serial.println('+');
         break;
 
-      case 's':
+      case 's':   // Z80 single step cycle
         Z80::cycle();
         Z80::printState();
         break;
 
-      case 'n':
+      case 'n':   // Z80 run until next instruction
         Z80::next();
         Serial.println(AddressBus::getAddress());
         break;
 
-      case '?':
+      case 'b':   // request Z80 bus
+        Z80::releaseBus();
+        Serial.println('+');
+        break;
+
+      case 'B':   // make Z80 take over bus
+        Z80::takeOverBus();
+        Serial.println('+');
+        break;
+
+      case '?':   // request Z80 state
         Z80::printState();
         break;
       
