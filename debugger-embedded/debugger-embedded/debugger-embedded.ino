@@ -133,16 +133,22 @@ public:
   }
 
   static void next() {
-    while (digitalRead(M1) != LOW)
-      cycle();
     cycle();
+    printState();
+    while (digitalRead(M1) != LOW) {
+      cycle();
+      printState();
+    }
+    cycle();
+    printState();
   }
 
   static void reset() {
     digitalWrite(RST, LOW);
-    for (size_t i = 0; i < 50; ++i)
+    for (size_t i = 0; i < 50; ++i) 
       cycle();
     digitalWrite(RST, HIGH);
+    printState();
   }
 
   static void releaseBus() {
@@ -154,9 +160,15 @@ public:
   }
 
   static void printState() {
-    Serial.print(AddressBus::getAddress());
+    if (digitalRead(MREQ) == LOW)
+      Serial.print(AddressBus::getAddress());
+    else
+      Serial.print('?');
     Serial.print(' ');
-    Serial.print(DataBus::getData());
+    if (digitalRead(MREQ) == LOW)
+      Serial.print(DataBus::getData());
+    else
+      Serial.print('?');
     Serial.print(" : ");
     Serial.print(digitalRead(M1));
     Serial.print(' ');
