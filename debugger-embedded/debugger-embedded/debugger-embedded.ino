@@ -33,23 +33,23 @@ public:
 
   static uint32_t getAddress() {
     setBusControl(false);
-    uint8_t addr = 0x0;
+    uint32_t addr = 0x0;
     addr |= (digitalRead(A0_) == HIGH ? (1 << 0) : 0);
-    addr |= (digitalRead(A1_) == HIGH ? (1 << 1) : 0);
-    addr |= (digitalRead(A2_) == HIGH ? (1 << 2) : 0);
-    addr |= (digitalRead(A3_) == HIGH ? (1 << 3) : 0);
-    addr |= (digitalRead(A4_) == HIGH ? (1 << 4) : 0);
-    addr |= (digitalRead(A5_) == HIGH ? (1 << 5) : 0);
-    addr |= (digitalRead(A6_) == HIGH ? (1 << 6) : 0);
-    addr |= (digitalRead(A7_) == HIGH ? (1 << 7) : 0);
-    addr |= (digitalRead(A8_) == HIGH ? (1 << 8) : 0);
-    addr |= (digitalRead(A9_) == HIGH ? (1 << 9) : 0);
-    addr |= (digitalRead(A10_) == HIGH ? (1 << 10) : 0);
-    addr |= (digitalRead(A11_) == HIGH ? (1 << 11) : 0);
-    addr |= (digitalRead(A12_) == HIGH ? (1 << 12) : 0);
-    addr |= (digitalRead(A13_) == HIGH ? (1 << 13) : 0);
-    addr |= (digitalRead(A14_) == HIGH ? (1 << 14) : 0);
-    addr |= (digitalRead(A15_) == HIGH ? (1 << 15) : 0);
+    addr |= (digitalRead(A1_) == HIGH ? (1U << 1) : 0);
+    addr |= (digitalRead(A2_) == HIGH ? (1U << 2) : 0);
+    addr |= (digitalRead(A3_) == HIGH ? (1U << 3) : 0);
+    addr |= (digitalRead(A4_) == HIGH ? (1U << 4) : 0);
+    addr |= (digitalRead(A5_) == HIGH ? (1U << 5) : 0);
+    addr |= (digitalRead(A6_) == HIGH ? (1U << 6) : 0);
+    addr |= (digitalRead(A7_) == HIGH ? (1U << 7) : 0);
+    addr |= (digitalRead(A8_) == HIGH ? (1U << 8) : 0);
+    addr |= (digitalRead(A9_) == HIGH ? (1U << 9) : 0);
+    addr |= (digitalRead(A10_) == HIGH ? (1U << 10) : 0);
+    addr |= (digitalRead(A11_) == HIGH ? (1U << 11) : 0);
+    addr |= (digitalRead(A12_) == HIGH ? (1U << 12) : 0);
+    addr |= (digitalRead(A13_) == HIGH ? (1U << 13) : 0);
+    addr |= (digitalRead(A14_) == HIGH ? (1U << 14) : 0);
+    addr |= (digitalRead(A15_) == HIGH ? (1U << 15) : 0);
     return addr;
   }
 
@@ -93,14 +93,14 @@ public:
   static uint8_t getData() {
     setBusControl(false);
     uint8_t data = 0x0;
-    data |= (digitalRead(D0) == HIGH ? (1 << 0) : 0);
-    data |= (digitalRead(D1) == HIGH ? (1 << 1) : 0);
-    data |= (digitalRead(D2) == HIGH ? (1 << 2) : 0);
-    data |= (digitalRead(D3) == HIGH ? (1 << 3) : 0);
-    data |= (digitalRead(D4) == HIGH ? (1 << 4) : 0);
-    data |= (digitalRead(D5) == HIGH ? (1 << 5) : 0);
-    data |= (digitalRead(D6) == HIGH ? (1 << 6) : 0);
-    data |= (digitalRead(D7) == HIGH ? (1 << 7) : 0);
+    data |= (digitalRead(D0) == HIGH ? (1U << 0) : 0);
+    data |= (digitalRead(D1) == HIGH ? (1U << 1) : 0);
+    data |= (digitalRead(D2) == HIGH ? (1U << 2) : 0);
+    data |= (digitalRead(D3) == HIGH ? (1U << 3) : 0);
+    data |= (digitalRead(D4) == HIGH ? (1U << 4) : 0);
+    data |= (digitalRead(D5) == HIGH ? (1U << 5) : 0);
+    data |= (digitalRead(D6) == HIGH ? (1U << 6) : 0);
+    data |= (digitalRead(D7) == HIGH ? (1U << 7) : 0);
     return data;
   }
 
@@ -132,6 +132,12 @@ public:
     digitalWrite(CLK, LOW);
   }
 
+  static void next() {
+    while (digitalRead(M1) != LOW)
+      cycle();
+    cycle();
+  }
+
   static void reset() {
     digitalWrite(RST, LOW);
     for (size_t i = 0; i < 50; ++i)
@@ -151,6 +157,18 @@ public:
     Serial.print(AddressBus::getAddress());
     Serial.print(' ');
     Serial.print(DataBus::getData());
+    Serial.print(" : ");
+    Serial.print(digitalRead(M1));
+    Serial.print(' ');
+    Serial.print(digitalRead(MREQ));
+    Serial.print(' ');
+    Serial.print(digitalRead(WR));
+    Serial.print(' ');
+    Serial.print(digitalRead(RD));
+    Serial.print(' ');
+    Serial.print(digitalRead(BUSAK));
+    Serial.print(' ');
+    Serial.print(digitalRead(IORQ));
     Serial.println();
   }
 
@@ -222,7 +240,6 @@ void loop() {
         Serial.println('+');
         break;
 
-      /*
       case 'r': {  // read byte from memory position
         uint32_t addr = Serial.parseInt();
         Z80::releaseBus();
@@ -236,12 +253,22 @@ void loop() {
         Z80::releaseBus();
         bool success = ROM::write(addr, data);
         Serial.println(success ? '+' : 'x');
+        break;
       }
-      */
 
       case 'R':
         Z80::reset();
         Serial.println('+');
+        break;
+
+      case 's':
+        Z80::cycle();
+        Z80::printState();
+        break;
+
+      case 'n':
+        Z80::next();
+        Serial.println(AddressBus::getAddress());
         break;
 
       case '?':
