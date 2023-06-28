@@ -127,6 +127,11 @@ public:
     pinMode(BUSRQ, OUTPUT);
     digitalWrite(RST, LOW);
     digitalWrite(BUSRQ, HIGH);
+
+    pinMode(RD, INPUT_PULLUP);
+    pinMode(MREQ, INPUT_PULLUP);
+    pinMode(ROM_WE, INPUT_PULLUP);
+    pinMode(WR, INPUT_PULLUP);
   }
 
   static void cycle() {
@@ -161,11 +166,6 @@ public:
         printState();
       }
     }
-
-    digitalWrite(RD, HIGH);
-    digitalWrite(MREQ, HIGH);
-    digitalWrite(ROM_WE, HIGH);
-    digitalWrite(WR, HIGH);
   }
 
   static void takeOverBus() {
@@ -205,7 +205,7 @@ public:
 
 };
 
-class ROM {
+class Memory {
 public:
 
   static void initialize() {
@@ -219,13 +219,11 @@ public:
     pinMode(MREQ, OUTPUT);
     digitalWrite(RD, LOW);
     digitalWrite(MREQ, LOW);
-    delayMicroseconds(100);
+    delayMicroseconds(10);
     uint8_t data = DataBus::getData();
     // for (;;);
-    digitalWrite(RD, HIGH);
-    digitalWrite(MREQ, HIGH);
-    pinMode(RD, INPUT);
-    pinMode(MREQ, INPUT);
+    pinMode(RD, INPUT_PULLUP);
+    pinMode(MREQ, INPUT_PULLUP);
     AddressBus::setBusControl(false);
     return data;
   }
@@ -239,10 +237,8 @@ public:
     digitalWrite(wrPin, LOW);
     digitalWrite(MREQ, LOW);
     delayMicroseconds(100);
-    digitalWrite(wrPin, HIGH);
-    digitalWrite(MREQ, HIGH);
-    pinMode(wrPin, INPUT);
-    pinMode(MREQ, INPUT);
+    pinMode(wrPin, INPUT_PULLUP);
+    pinMode(MREQ, INPUT_PULLUP);
     delayMicroseconds(100);
 
     for (size_t i = 0; i < 1000; ++i) {
@@ -257,9 +253,9 @@ public:
 };
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(115200);
   Z80::initialize();
-  ROM::initialize();
+  Memory::initialize();
 }
 
 void loop() {
@@ -273,8 +269,13 @@ void loop() {
 
       case 'r': {  // read byte from memory position
         uint32_t addr = Serial.parseInt();
+        int count = Serial.parseInt();
         Z80::releaseBus();
-        Serial.println(ROM::read(addr));
+        for (int i = 0; i < count; ++i) {
+          Serial.print(Memory::read(addr + i));
+          Serial.print(' ');
+        }
+        Serial.println();
         break;
       }
 
@@ -282,7 +283,7 @@ void loop() {
         uint32_t addr = Serial.parseInt();
         uint8_t data = Serial.parseInt();
         Z80::releaseBus();
-        bool success = ROM::write(addr, data);
+        bool success = Memory::write(addr, data);
         Serial.println(success ? '+' : 'x');
         break;
       }
