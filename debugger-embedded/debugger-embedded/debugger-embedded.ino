@@ -281,9 +281,14 @@ void loop() {
 
       case 'w': {   // write byte to memory position
         uint32_t addr = Serial.parseInt();
-        uint8_t data = Serial.parseInt();
+        int count = Serial.parseInt();
         Z80::releaseBus();
-        bool success = Memory::write(addr, data);
+        bool success = true;
+        for (int i = 0; i < count; ++i) {
+          uint8_t data = Serial.parseInt();
+          if (!Memory::write(addr + i, data))
+            success = false;
+        }
         Serial.println(success ? '+' : 'x');
         break;
       }
