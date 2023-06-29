@@ -42,6 +42,18 @@ class MemoryScreen:
                 self.window.addstr(i + 2, x, "{:02X}".format(debugger.memory[addr + j]))
         self.window.refresh()
 
+    def key(self, c):
+        if c == "KEY_NPAGE" or c == "KEY_UP":
+            self.page -= 1
+            if self.page < 0:
+                self.page = 255
+            self.draw()
+        elif c == "KEY_PPAGE" or c == "KEY_DOWN":
+            self.page += 1
+            if self.page > 255:
+                self.page = 0
+            self.draw()
+
 
 class MainScreen:
 
@@ -56,10 +68,18 @@ class MainScreen:
         stdscr.clear()
         stdscr.chgat(0, 0, -1, curses.color_pair(2))
         stdscr.attron(curses.color_pair(2))
-        stdscr.addstr(" [F1] Memory     [F2] Debugger")
+        stdscr.addstr(" [F1] Memory     [F2] Debugger    [F10] Quit")
         stdscr.refresh()
         if self.selected == "memory":
             self.memory.draw()
+
+    def key(self, c):
+        if c == curses.KEY_F1:
+            self.selected = "memory"
+        elif c == curses.KEY_F2:
+            self.selected = "cpu"
+        elif self.selected == "memory":
+            self.memory.key(c)
 
 
 def run_ui(stdscr):
@@ -74,7 +94,12 @@ def run_ui(stdscr):
     main_screen = MainScreen()
     main_screen.initial_draw()
 
-    stdscr.getkey()
+    while True:
+        c = stdscr.getkey()
+        if c == curses.KEY_F10:
+            break
+        else:
+            main_screen.key(c)
 
 
 ##############
