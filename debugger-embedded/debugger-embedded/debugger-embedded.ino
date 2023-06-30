@@ -134,6 +134,10 @@ public:
     pinMode(WR, INPUT_PULLUP);
   }
 
+  static bool isBusFree() {
+    return digitalRead(RST) == LOW || digitalRead(BUSAK) == LOW;
+  }
+
   static void cycle() {
     digitalWrite(CLK, HIGH);
     digitalWrite(CLK, LOW);
@@ -320,6 +324,13 @@ void loop() {
 
       case '?':   // request Z80 state
         Z80::printState();
+        break;
+
+      case 'f':  // is bus free?
+        if (Z80::isBusFree())
+          Serial.println('y');
+        else
+          Serial.println('n');
         break;
       
       case 10:  // ignore line breaks

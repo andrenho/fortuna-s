@@ -3,6 +3,7 @@
 import curses
 from curses import wrapper
 import random
+import serial
 
 stdscr = curses.initscr()
 curses.start_color()
@@ -13,8 +14,22 @@ curses.start_color()
 #            #
 ##############
 
+class CommunicationException(Exception):
+    pass
+
 class Debugger:
     memory = [random.randint(0, 255) for _ in range(64 * 1024)]
+
+    def send(self, cmd):
+        self.ser.write(bytes(cmd + "\n", "latin1"))
+
+    def recv(self):
+        return self.ser.readline()
+
+    def open_communication(self):
+        self.ser = serial.Serial("COM6", 115200)
+        self.send('h')  # request ACK
+        print(self.recv())
 
 debugger = Debugger()
 
@@ -43,12 +58,12 @@ class MemoryScreen:
         self.window.refresh()
 
     def key(self, c):
-        if c == "KEY_PPAGE" or c == "KEY_UP":
+        if c == "KEY_NPAGE" or c == "KEY_UP":
             self.page -= 1
             if self.page < 0:
                 self.page = 255
             self.draw()
-        elif c == "KEY_NPAGE" or c == "KEY_DOWN":
+        elif c == "KEY_PPAGE" or c == "KEY_DOWN":
             self.page += 1
             if self.page > 255:
                 self.page = 0
@@ -74,9 +89,9 @@ class MainScreen:
             self.memory.draw()
 
     def key(self, c):
-        if c == curses.KEY_F1 or c == "KEY_F(1)":
+        if c == curses.KEY_F1:
             self.selected = "memory"
-        elif c == curses.KEY_F2 or c == "KEY_F(2)":
+        elif c == curses.KEY_F2:
             self.selected = "cpu"
         elif self.selected == "memory":
             self.memory.key(c)
@@ -96,7 +111,7 @@ def run_ui(stdscr):
 
     while True:
         c = stdscr.getkey()
-        if c == curses.KEY_F10 or c == "KEY_F(10)":
+        if c == curses.KEY_F10:
             break
         else:
             main_screen.key(c)
@@ -109,4 +124,5 @@ def run_ui(stdscr):
 ##############
 
 debugger = Debugger()
-wrapper(run_ui)
+debugger.open_communication()
+# wrapper(run_ui)
