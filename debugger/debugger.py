@@ -43,12 +43,12 @@ class MemoryScreen:
         self.window.refresh()
 
     def key(self, c):
-        if c == "KEY_NPAGE" or c == "KEY_UP":
+        if c == "KEY_PPAGE" or c == "KEY_UP":
             self.page -= 1
             if self.page < 0:
                 self.page = 255
             self.draw()
-        elif c == "KEY_PPAGE" or c == "KEY_DOWN":
+        elif c == "KEY_NPAGE" or c == "KEY_DOWN":
             self.page += 1
             if self.page > 255:
                 self.page = 0
@@ -74,9 +74,9 @@ class MainScreen:
             self.memory.draw()
 
     def key(self, c):
-        if c == curses.KEY_F1:
+        if c == curses.KEY_F1 or c == "KEY_F(1)":
             self.selected = "memory"
-        elif c == curses.KEY_F2:
+        elif c == curses.KEY_F2 or c == "KEY_F(2)":
             self.selected = "cpu"
         elif self.selected == "memory":
             self.memory.key(c)
@@ -96,7 +96,7 @@ def run_ui(stdscr):
 
     while True:
         c = stdscr.getkey()
-        if c == curses.KEY_F10:
+        if c == curses.KEY_F10 or c == "KEY_F(10)":
             break
         else:
             main_screen.key(c)
