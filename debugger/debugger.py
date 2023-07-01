@@ -65,12 +65,10 @@ class Debugger:
         print(self.source_map)
 
     def send(self, cmd):
-        return # TODO
         # print("> " + cmd)
         self.ser.write(bytes(cmd + '\n', 'latin1'))
 
     def recv(self):
-        return [] # TODO
         b = self.ser.readline().decode('latin1').replace('\n', '').replace('\r', '').split()
         # print("< ", b)
         if len(b) > 0 and b[0] == 'x':
@@ -91,7 +89,6 @@ class Debugger:
         self.memory[(page * 0x100):((page + 1) * 0x100)] = [int(x) for x in self.recv()]
 
     def open_communication(self, serial_port):
-        return # TODO
         print('Contacting debugger...')
         self.ser = serial.Serial(serial_port, 115200)
         time.sleep(1)
