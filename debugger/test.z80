@@ -1,0 +1,3 @@
+hello:
+    nop
+    jp hello
