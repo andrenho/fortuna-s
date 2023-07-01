@@ -2,9 +2,11 @@
 
 import curses
 from curses import wrapper
+import os
 import random
 import serial
 import time
+import sys
 
 ##############
 #            #
@@ -22,13 +24,20 @@ class Debugger:
         self.ser.write(bytes(cmd + "\n", "latin1"))
 
     def recv(self):
-        return self.ser.readline()
+        b = self.ser.readline().decode("latin1").replace("\n", "").replace("\r", "").split()
+        if len(b) > 0 and b[0] == 'x':
+            raise Exception("Debugger responded with error")
+        return b
 
-    def open_communication(self):
-        self.ser = serial.Serial('COM6', 115200)
+    def ack(self):
+        self.send('h')
+        self.recv()
+
+    def open_communication(self, serial_port):
+        print("Contacting debugger...")
+        self.ser = serial.Serial(serial_port, 115200)
         time.sleep(1)
-        self.send('h')  # request ACK
-        print(self.recv())
+        self.ack()
 
 
 ##############
@@ -42,7 +51,11 @@ class MemoryScreen:
     page = 0
 
     def __init__(self, rows, cols):
+        self.update_page()
         self.window = curses.newwin(rows - 1, cols, 1, 0)
+
+    def update_page(self):
+        pass
 
     def draw(self):
         self.window.bkgd(curses.color_pair(1), curses.A_BOLD)
@@ -59,11 +72,13 @@ class MemoryScreen:
             self.page -= 1
             if self.page < 0:
                 self.page = 255
+            self.update_page()
             self.draw()
         elif c == "KEY_PPAGE" or c == "KEY_DOWN":
             self.page += 1
             if self.page > 255:
                 self.page = 0
+            self.update_page()
             self.draw()
 
 
@@ -88,6 +103,7 @@ class MainScreen:
     def key(self, c):
         if c == curses.KEY_F1:
             self.selected = "memory"
+            self.memory.update_page()
         elif c == curses.KEY_F2:
             self.selected = "cpu"
         elif self.selected == "memory":
@@ -108,7 +124,7 @@ def run_ui(stdscr):
 
     while True:
         c = stdscr.getkey()
-        if c == curses.KEY_F10:
+        if c == curses.KEY_F10 or c == 'q':
             break
         else:
             main_screen.key(c)
@@ -120,10 +136,13 @@ def run_ui(stdscr):
 #            #
 ##############
 
-debugger = Debugger()
-debugger.open_communication()
-print("Done")
+if len(sys.argv) != 3:
+    print("Usage: %s SERIAL_PORT SOURCE" % sys.argv[0])
+    sys.exit(1)
 
-# stdscr = curses.initscr()
-# curses.start_color()
-# wrapper(run_ui)
+debugger = Debugger()
+debugger.open_communication(sys.argv[1])
+
+stdscr = curses.initscr()
+curses.start_color()
+wrapper(run_ui)
