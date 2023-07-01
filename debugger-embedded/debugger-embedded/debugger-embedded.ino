@@ -144,6 +144,7 @@ public:
   }
 
   static void next() {
+    digitalWrite(BUSRQ, HIGH);
     cycle();
     // printState();
     while (digitalRead(M1) != LOW) {
