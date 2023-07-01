@@ -18,7 +18,7 @@ class CommunicationException(Exception):
     pass
 
 class Debugger:
-    memory = [random.randint(0, 255) for _ in range(64 * 1024)]
+    memory = [0xff for _ in range(64 * 1024)]
 
     def send(self, cmd):
         self.ser.write(bytes(cmd + "\n", "latin1"))
@@ -34,8 +34,8 @@ class Debugger:
         self.recv()
 
     def update_memory_page(self, page):
-        self.send("r %d 256" % page)
-        print(self.recv())
+        self.send("r %d 256" % (page * 0x100))
+        self.memory[(page * 0x100):((page + 1) * 0x100)] = [int(x) for x in self.recv()]
 
     def open_communication(self, serial_port):
         print("Contacting debugger...")
@@ -72,13 +72,13 @@ class MemoryScreen:
         self.window.refresh()
 
     def key(self, c):
-        if c == "KEY_NPAGE" or c == "KEY_UP":
+        if c == "KEY_PPAGE" or c == "KEY_UP":
             self.page -= 1
             if self.page < 0:
                 self.page = 255
             self.update_page()
             self.draw()
-        elif c == "KEY_PPAGE" or c == "KEY_DOWN":
+        elif c == "KEY_NPAGE" or c == "KEY_DOWN":
             self.page += 1
             if self.page > 255:
                 self.page = 0
@@ -146,6 +146,7 @@ if len(sys.argv) != 3:
 
 debugger = Debugger()
 debugger.open_communication(sys.argv[1])
+debugger.update_memory_page(0)
 
 stdscr = curses.initscr()
 curses.start_color()
