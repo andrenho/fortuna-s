@@ -62,11 +62,6 @@ class Debugger:
             if re.match(pattern, address):
                 self.source_map[i] = int(address, 16)
             i += 1
-        print(self.source_map)
-
-    def reset(self):
-        self.send('R')
-        self.recv()
 
     def send(self, cmd):
         # print("> " + cmd)
@@ -82,6 +77,15 @@ class Debugger:
     def ack(self):
         self.send('h')
         self.recv()
+
+    def reset(self):
+        self.send('R')
+        self.recv()
+        self.next()
+
+    def next(self):
+        self.send('n')
+        self.pc = int(self.recv()[0])
 
     def upload_rom(self, rom):
         request = ('w 0 %d ' % len(rom)) + ' '.join([str(x) for x in rom])
@@ -110,7 +114,6 @@ class MemoryScreen:
     page = 0
 
     def __init__(self, rows, cols):
-        self.update_page()
         self.window = curses.newwin(rows - 1, cols, 1, 0)
 
     def update_page(self):
@@ -158,6 +161,7 @@ class CodeScreen:
     def draw(self):
         rows, cols = self.window.getmaxyx()
         self.window.bkgd(curses.color_pair(1), curses.A_BOLD)
+        self.window.clear()
         self.adjust_top()
         for i in range(0, rows):
             try:
@@ -170,11 +174,16 @@ class CodeScreen:
                 pass
         stdscr.chgat(rows, 0, -1, curses.color_pair(2))
         stdscr.attron(curses.color_pair(2))
-        stdscr.addstr(rows, 0, ' [S] Step')
+        stdscr.addstr(rows, 0, ' [S] Step   [R] Reset')
         self.window.refresh()
 
     def key(self, c):
-        pass
+        if c == 'S' or c == 's':
+            debugger.next()
+            self.draw()
+        elif c == 'R' or c == 'r':
+            debugger.reset()
+            self.draw()
 
 
 class MainScreen:
@@ -247,8 +256,6 @@ if len(sys.argv) != 3:
     sys.exit(1)
 
 dbg_source, rom = compile_source(sys.argv[2])
-print(dbg_source)
-print(rom)
 
 debugger = Debugger()
 debugger.open_communication(sys.argv[1])

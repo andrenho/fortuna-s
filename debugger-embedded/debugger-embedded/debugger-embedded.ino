@@ -145,13 +145,13 @@ public:
 
   static void next() {
     cycle();
-    printState();
+    // printState();
     while (digitalRead(M1) != LOW) {
       cycle();
-      printState();
+      // printState();
     }
     cycle();
-    printState();
+    // printState();
   }
 
   static void reset() {
@@ -159,7 +159,7 @@ public:
     for (size_t i = 0; i < 50; ++i) 
       cycle();
     digitalWrite(RST, HIGH);
-    printState();
+    // printState();
   }
 
   static void releaseBus() {
@@ -167,7 +167,7 @@ public:
       digitalWrite(BUSRQ, LOW);
       while (digitalRead(BUSAK) != LOW) {
         cycle();
-        printState();
+        // printState();
       }
     }
   }
@@ -177,7 +177,7 @@ public:
       digitalWrite(BUSRQ, HIGH);
       while (digitalRead(BUSAK) != HIGH) {
         cycle();
-        printState();
+        // printState();
       }
     }
   }
