@@ -4,9 +4,7 @@ import curses
 from curses import wrapper
 import random
 import serial
-
-stdscr = curses.initscr()
-curses.start_color()
+import time
 
 ##############
 #            #
@@ -27,11 +25,10 @@ class Debugger:
         return self.ser.readline()
 
     def open_communication(self):
-        self.ser = serial.Serial("COM6", 115200)
+        self.ser = serial.Serial('COM6', 115200)
+        time.sleep(1)
         self.send('h')  # request ACK
         print(self.recv())
-
-debugger = Debugger()
 
 
 ##############
@@ -125,4 +122,8 @@ def run_ui(stdscr):
 
 debugger = Debugger()
 debugger.open_communication()
+print("Done")
+
+# stdscr = curses.initscr()
+# curses.start_color()
 # wrapper(run_ui)
