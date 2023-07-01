@@ -255,7 +255,6 @@ print("Uploading ROM...")
 debugger.update_source(dbg_source)
 debugger.upload_rom(rom)
 del rom
-debugger.update_memory_page(0)
 
 stdscr = curses.initscr()
 curses.start_color()
