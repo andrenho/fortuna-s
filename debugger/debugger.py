@@ -4,6 +4,7 @@ import curses
 from curses import wrapper
 import os
 import random
+import re
 import serial
 import subprocess
 import time
@@ -48,12 +49,30 @@ class CommunicationException(Exception):
 
 class Debugger:
     memory = [0xff for _ in range(64 * 1024)]
+    pc = 0
+    source = []
+    source_map = {}
+
+    def update_source(self, src):
+        self.source = src.split("\n")
+        pattern = r"^[0-9A-Fa-f]{4}$"
+        i = 0
+        for line in self.source:
+            address = line[3:7]
+            if re.match(pattern, address):
+                self.source_map[i] = int(address, 16)
+            i += 1
+        print(self.source_map)
 
     def send(self, cmd):
+        return # TODO
+        # print("> " + cmd)
         self.ser.write(bytes(cmd + '\n', 'latin1'))
 
     def recv(self):
+        return [] # TODO
         b = self.ser.readline().decode('latin1').replace('\n', '').replace('\r', '').split()
+        # print("< ", b)
         if len(b) > 0 and b[0] == 'x':
             raise Exception('Debugger responded with error')
         return b
@@ -63,13 +82,16 @@ class Debugger:
         self.recv()
 
     def upload_rom(self, rom):
-        pass
+        request = ('w 0 %d ' % len(rom)) + ' '.join([str(x) for x in rom])
+        self.send(request)
+        self.recv()
 
     def update_memory_page(self, page):
         self.send('r %d 256' % (page * 0x100))
         self.memory[(page * 0x100):((page + 1) * 0x100)] = [int(x) for x in self.recv()]
 
     def open_communication(self, serial_port):
+        return # TODO
         print('Contacting debugger...')
         self.ser = serial.Serial(serial_port, 115200)
         time.sleep(1)
@@ -101,6 +123,10 @@ class MemoryScreen:
             for j in range(0, 16):
                 x = 13 + (j * 3) + (0 if j < 8 else 1)
                 self.window.addstr(i + 2, x, '{:02X}'.format(debugger.memory[addr + j]))
+        rows, cols = self.window.getmaxyx()
+        stdscr.chgat(rows, 0, -1, curses.color_pair(2))
+        stdscr.attron(curses.color_pair(2))
+        stdscr.addstr(rows, 0, ' [PgUp] Previous page     [PgDown] Next Page')
         self.window.refresh()
 
     def key(self, c):
@@ -118,32 +144,74 @@ class MemoryScreen:
             self.draw()
 
 
+class CodeScreen:
+
+    top = 0
+
+    def __init__(self, rows, cols):
+        self.window = curses.newwin(rows - 1, cols, 1, 0)
+
+    def adjust_top(self):
+        pass
+
+    def draw(self):
+        rows, cols = self.window.getmaxyx()
+        self.window.bkgd(curses.color_pair(1), curses.A_BOLD)
+        self.adjust_top()
+        for i in range(0, rows):
+            try:
+                if i in debugger.source_map and debugger.source_map[i] == debugger.pc:
+                    self.window.attron(curses.color_pair(3))
+                    self.window.chgat(self.top + i, 0, -1, curses.color_pair(3))
+                self.window.addstr(i, 0, debugger.source[self.top + i])
+                self.window.attroff(curses.color_pair(3))
+            except:
+                pass
+        stdscr.chgat(rows, 0, -1, curses.color_pair(2))
+        stdscr.attron(curses.color_pair(2))
+        stdscr.addstr(rows, 0, ' [S] Step')
+        self.window.refresh()
+
+    def key(self, c):
+        pass
+
+
 class MainScreen:
 
-    selected = 'memory'
+    selected = 'code'
 
     def __init__(self):
         rows, cols = stdscr.getmaxyx()
         self.memory = MemoryScreen(rows, cols)
+        self.code = CodeScreen(rows, cols)
 
     def initial_draw(self):
         stdscr.bkgd(curses.color_pair(1), curses.A_BOLD)
         stdscr.clear()
         stdscr.chgat(0, 0, -1, curses.color_pair(2))
         stdscr.attron(curses.color_pair(2))
-        stdscr.addstr(' [F1] Memory     [F2] Debugger    [F10] Quit')
+        stdscr.addstr(' [F1] Code     [F2] Memory    [F10] Quit')
         stdscr.refresh()
+        self.draw()
+
+    def draw(self):
         if self.selected == 'memory':
             self.memory.draw()
+        elif self.selected == 'code':
+            self.code.draw()
 
     def key(self, c):
-        if c == curses.KEY_F1:
+        if c == curses.KEY_F1 or c == 'KEY_F(1)' or c == '1':
+            self.selected = 'code'
+            self.initial_draw()
+        elif c == curses.KEY_F2 or c == 'KEY_F(2)' or c == '2':
             self.selected = 'memory'
             self.memory.update_page()
-        elif c == curses.KEY_F2:
-            self.selected = 'cpu'
+            self.initial_draw()
         elif self.selected == 'memory':
             self.memory.key(c)
+        elif self.selected == 'code':
+            self.code.key(c)
 
 
 def run_ui(stdscr):
@@ -154,6 +222,7 @@ def run_ui(stdscr):
 
     curses.init_pair(1, curses.COLOR_YELLOW, curses.COLOR_BLUE)
     curses.init_pair(2, curses.COLOR_WHITE, curses.COLOR_GREEN)
+    curses.init_pair(3, curses.COLOR_WHITE, curses.COLOR_CYAN)
 
     main_screen = MainScreen()
     main_screen.initial_draw()
@@ -182,6 +251,8 @@ print(rom)
 
 debugger = Debugger()
 debugger.open_communication(sys.argv[1])
+print("Uploading ROM...")
+debugger.update_source(dbg_source)
 debugger.upload_rom(rom)
 del rom
 debugger.update_memory_page(0)
