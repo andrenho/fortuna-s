@@ -13,16 +13,16 @@
 - [x] Debugger hardware
 - [x] Memory functions
 - [x] Z80 functions
-- [ ] Prepare for connection with debugger (software)
+- [x] Prepare for connection with debugger (software)
 
 ### Debugger (software)
 
-- [ ] Basic project
-- [ ] Show ROM/RAM
-- [ ] Modify ROM/RAM
-- [ ] Upload ROM
-- [ ] Load project
-- [ ] Debug (basic)
+- [x] Basic project
+- [x] Show ROM/RAM
+- [x] Upload ROM
+- [x] Load project
+- [x] Debug (basic)
+- [ ] Emulate UART
 
 ### Z80 software
 
