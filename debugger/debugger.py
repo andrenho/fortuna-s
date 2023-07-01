@@ -33,6 +33,10 @@ class Debugger:
         self.send('h')
         self.recv()
 
+    def update_memory_page(self, page):
+        self.send("r %d 256" % page)
+        print(self.recv())
+
     def open_communication(self, serial_port):
         print("Contacting debugger...")
         self.ser = serial.Serial(serial_port, 115200)
@@ -55,7 +59,7 @@ class MemoryScreen:
         self.window = curses.newwin(rows - 1, cols, 1, 0)
 
     def update_page(self):
-        pass
+        debugger.update_memory_page(self.page)
 
     def draw(self):
         self.window.bkgd(curses.color_pair(1), curses.A_BOLD)
