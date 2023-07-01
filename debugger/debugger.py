@@ -10,6 +10,16 @@ import sys
 
 ##############
 #            #
+#  Compiler  #
+#            #
+##############
+
+def compile_source(source_filename):
+    pass
+
+
+##############
+#            #
 #  Debugger  #
 #            #
 ##############
