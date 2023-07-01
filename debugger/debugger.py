@@ -64,6 +64,10 @@ class Debugger:
             i += 1
         print(self.source_map)
 
+    def reset(self):
+        self.send('R')
+        self.recv()
+
     def send(self, cmd):
         # print("> " + cmd)
         self.ser.write(bytes(cmd + '\n', 'latin1'))
@@ -252,6 +256,8 @@ print("Uploading ROM...")
 debugger.update_source(dbg_source)
 debugger.upload_rom(rom)
 del rom
+
+debugger.reset()
 
 stdscr = curses.initscr()
 curses.start_color()
