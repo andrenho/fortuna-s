@@ -1,3 +1,5 @@
+#include <cppQueue.h>
+
 typedef enum {
   D0 = 16, D1 = 18, D2 = 12, D3 = 4, D4 = 2, D5 = 6, D6 = 8, D7 = 14,
   A0_ = 65, A1_ = 63, A2_ = 61, A3_ = 59, A4_ = 57, A5_ = 55, A6_ = 54, A7_ = 56,
@@ -7,7 +9,10 @@ typedef enum {
   BUSAK = 41, WR = 43, RD = 45, ROM_WE = 47,
 } Pin;
 
-#define PRINT_STATE() printState()
+// uncomment next define to debug Z80 states between cycles
+#define PRINT_STATE() // printState()
+
+cppQueue uart(1, 64, FIFO, true);
 
 
 class AddressBus {
@@ -154,6 +159,17 @@ public:
     while (digitalRead(M1) != LOW) {
       cycle();
       PRINT_STATE();
+      if (digitalRead(IORQ) == LOW) {
+        uint8_t addr = AddressBus::getAddress();
+        if (addr == 0x80) {  // TODO - check correct address
+          uint8_t data = DataBus::getData();
+          uart.push(&data);
+        }
+        while (digitalRead(IORQ) == LOW) {
+          cycle();
+          PRINT_STATE();        
+        }
+      }
     }
     cycle();
     PRINT_STATE();
@@ -325,6 +341,17 @@ void loop() {
       case 'B':   // make Z80 take over bus
         Z80::takeOverBus();
         Serial.println('+');
+        break;
+
+      case 'u':   // get UART chars
+        Serial.print(uart.getCount());
+        while (!uart.isEmpty()) {
+          uint8_t data;
+          uart.pop(&data);
+          Serial.print(' ');
+          Serial.print(data);
+        }
+        Serial.println();
         break;
 
       case '?':   // request Z80 state
