@@ -1,5 +1,11 @@
 hello:
     nop
     nop
+    jp skip
+    nop
+    nop
+skip:
+    nop
+    nop
     nop
     jp hello

@@ -132,6 +132,8 @@ public:
     pinMode(MREQ, INPUT_PULLUP);
     pinMode(ROM_WE, INPUT_PULLUP);
     pinMode(WR, INPUT_PULLUP);
+
+    cycle();
   }
 
   static bool isBusFree() {
@@ -265,6 +267,7 @@ void setup() {
 
 void loop() {
   if (Serial.available() > 0) {
+
     char c = Serial.read();
     switch (c) {
 
@@ -287,6 +290,7 @@ void loop() {
       case 'w': {   // write byte to memory position
         uint32_t addr = Serial.parseInt();
         int count = Serial.parseInt();
+        Serial.setTimeout(10000);
         Z80::releaseBus();
         bool success = true;
         for (int i = 0; i < count; ++i) {
@@ -295,6 +299,7 @@ void loop() {
             success = false;
         }
         Serial.println(success ? '+' : 'x');
+        Serial.setTimeout(1000);
         break;
       }
 
