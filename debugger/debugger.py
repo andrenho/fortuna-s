@@ -17,7 +17,7 @@ import sys
 ##############
 
 def compile_source(source_filename):
-    cp = subprocess.run(['./vasmz80_oldstyle', '-chklabels', '-L', 'listing.txt', '-Llo', '-nosym', '-x', '-Fbin', '-o', 'rom.bin', source_filename], check=True, capture_output=True, text=True)
+    cp = subprocess.run(['./vasmz80_oldstyle', '-chklabels', '-L', 'listing.txt', '-Llo', '-nosym', '-x', '-Fbin', '-o', 'rom.bin', source_filename], capture_output=True, text=True)
     print(cp.stdout)
     if cp.stderr != '':
         print(cp.stderr)

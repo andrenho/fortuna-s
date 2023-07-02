@@ -1,38 +1,4 @@
-hello:
-    nop
-    nop
-    jp skip1
-    nop
-    nop
-skip1:
-    nop
-    nop
-    nop
-    nop
-    nop
-    jp skip2
-    nop
-    nop
-skip2:
-    nop
-    nop
-    nop
-    nop
-    nop
-    jp skip3
-    nop
-    nop
-skip3:
-    nop
-    nop
-    nop
-    nop
-    nop
-    jp skip4
-    nop
-    nop
-skip4:
-    nop
-    nop
-    nop
-    jp hello
+start: 
+    ld      a, 'H'
+    out     (0x80), a
+    jp      start
