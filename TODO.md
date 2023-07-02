@@ -14,6 +14,7 @@
 - [x] Memory functions
 - [x] Z80 functions
 - [x] Prepare for connection with debugger (software)
+- [ ] Emulate UART
 
 ### Debugger (software)
 
