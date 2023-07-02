@@ -52,6 +52,7 @@ class Debugger:
     pc = 0
     source = []
     source_map = {}
+    source_map_pc = {}
 
     def update_source(self, src):
         self.source = src.split("\n")
@@ -61,15 +62,16 @@ class Debugger:
             address = line[3:7]
             if re.match(pattern, address):
                 self.source_map[i] = int(address, 16)
+                self.source_map_pc[int(address, 16)] = i
             i += 1
 
     def send(self, cmd):
-        print("> " + cmd)
+        # print("> " + cmd)
         self.ser.write(bytes(cmd + '\n', 'latin1'))
 
     def recv(self):
         b = self.ser.readline().decode('latin1').replace('\n', '').replace('\r', '').split()
-        print("< ", b)
+        # print("< ", b)
         if len(b) > 0 and b[0] == 'x':
             raise Exception('Debugger responded with error')
         return b
@@ -93,6 +95,8 @@ class Debugger:
             request = ('w %d %d ' % (i, len(bts))) + ' '.join([str(x) for x in bts])
             self.send(request)
             self.recv()
+            print('.', end='')
+        print()
 
     def update_memory_page(self, page):
         self.send('r %d 256' % (page * 0x100))
@@ -157,21 +161,31 @@ class CodeScreen:
     def __init__(self, rows, cols):
         self.window = curses.newwin(rows - 1, cols, 1, 0)
 
-    def adjust_top(self):
-        pass
+    def adjust_top(self, pc_visible):
+        rows, cols = self.window.getmaxyx()
+        if pc_visible and debugger.pc in debugger.source_map_pc:
+            pc_line = debugger.source_map_pc[debugger.pc]
+            if pc_line < self.top or pc_line >= (self.top + rows) - 1:
+                self.top = pc_line - 3
+        if self.top < 0:
+            self.top = 0
+        if self.top >= len(debugger.source) - 2:
+            self.top = len(debugger.source) - 2
 
-    def draw(self):
+    def draw(self, pc_visible=True):
         rows, cols = self.window.getmaxyx()
         self.window.bkgd(curses.color_pair(1), curses.A_BOLD)
         self.window.clear()
-        self.adjust_top()
-        for i in range(0, rows):
+        self.adjust_top(pc_visible)
+        y = 0
+        for i in range(self.top, self.top + rows):
             try:
                 if i in debugger.source_map and debugger.source_map[i] == debugger.pc:
                     self.window.attron(curses.color_pair(3))
-                    self.window.chgat(self.top + i, 0, -1, curses.color_pair(3))
-                self.window.addstr(i, 0, debugger.source[self.top + i])
+                    self.window.chgat(i - self.top, 0, -1, curses.color_pair(3))
+                self.window.addstr(y, 0, debugger.source[i])
                 self.window.attroff(curses.color_pair(3))
+                y += 1
             except:
                 pass
         stdscr.chgat(rows, 0, -1, curses.color_pair(2))
@@ -186,6 +200,12 @@ class CodeScreen:
         elif c == 'R' or c == 'r':
             debugger.reset()
             self.draw()
+        elif c == 'KEY_DOWN':
+            self.top += 1
+            self.draw(False)
+        elif c == 'KEY_UP':
+            self.top -= 1
+            self.draw(False)
 
 
 class MainScreen:
