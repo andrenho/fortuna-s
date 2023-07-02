@@ -7,6 +7,8 @@ typedef enum {
   BUSAK = 41, WR = 43, RD = 45, ROM_WE = 47,
 } Pin;
 
+#define PRINT_STATE() printState()
+
 
 class AddressBus {
 public:
@@ -148,13 +150,13 @@ public:
   static void next() {
     digitalWrite(BUSRQ, HIGH);
     cycle();
-    // printState();
+    PRINT_STATE();
     while (digitalRead(M1) != LOW) {
       cycle();
-      // printState();
+      PRINT_STATE();
     }
     cycle();
-    // printState();
+    PRINT_STATE();
   }
 
   static void reset() {
@@ -162,7 +164,7 @@ public:
     for (size_t i = 0; i < 50; ++i) 
       cycle();
     digitalWrite(RST, HIGH);
-    // printState();
+    PRINT_STATE();
   }
 
   static void releaseBus() {
@@ -170,7 +172,7 @@ public:
       digitalWrite(BUSRQ, LOW);
       while (digitalRead(BUSAK) != LOW) {
         cycle();
-        // printState();
+        PRINT_STATE();
       }
     }
   }
@@ -180,33 +182,30 @@ public:
       digitalWrite(BUSRQ, HIGH);
       while (digitalRead(BUSAK) != HIGH) {
         cycle();
-        // printState();
+        PRINT_STATE();
       }
     }
   }
 
   static void printState() {
-    if (digitalRead(MREQ) == LOW)
+    if (digitalRead(IORQ) == LOW)
+      Serial.print(AddressBus::getAddress() & 0x80);
+    else if (digitalRead(MREQ) == LOW)
       Serial.print(AddressBus::getAddress());
     else
       Serial.print('?');
     Serial.print(' ');
-    if (digitalRead(MREQ) == LOW)
+    if (digitalRead(MREQ) == LOW || digitalRead(IORQ) == LOW)
       Serial.print(DataBus::getData());
     else
       Serial.print('?');
     Serial.print(" : ");
-    Serial.print(digitalRead(M1));
-    Serial.print(' ');
-    Serial.print(digitalRead(MREQ));
-    Serial.print(' ');
-    Serial.print(digitalRead(WR));
-    Serial.print(' ');
-    Serial.print(digitalRead(RD));
-    Serial.print(' ');
-    Serial.print(digitalRead(BUSAK));
-    Serial.print(' ');
-    Serial.print(digitalRead(IORQ));
+    Serial.print(digitalRead(M1) == LOW ? "M1 " : "");
+    Serial.print(digitalRead(MREQ) == LOW ? "MREQ " : "");
+    Serial.print(digitalRead(WR) == LOW ? "WR " : "");
+    Serial.print(digitalRead(RD) == LOW ? "RD " : "");
+    Serial.print(digitalRead(BUSAK) == LOW ? "BUSAK " : "");
+    Serial.print(digitalRead(IORQ) == LOW ? "IORQ " : "");
     Serial.println();
   }
 
