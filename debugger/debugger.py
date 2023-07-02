@@ -64,12 +64,12 @@ class Debugger:
             i += 1
 
     def send(self, cmd):
-        # print("> " + cmd)
+        print("> " + cmd)
         self.ser.write(bytes(cmd + '\n', 'latin1'))
 
     def recv(self):
         b = self.ser.readline().decode('latin1').replace('\n', '').replace('\r', '').split()
-        # print("< ", b)
+        print("< ", b)
         if len(b) > 0 and b[0] == 'x':
             raise Exception('Debugger responded with error')
         return b
@@ -88,9 +88,11 @@ class Debugger:
         self.pc = int(self.recv()[0])
 
     def upload_rom(self, rom):
-        request = ('w 0 %d ' % len(rom)) + ' '.join([str(x) for x in rom])
-        self.send(request)
-        self.recv()
+        for i in range(0, len(rom), 16):
+            bts = rom[i:(i+16)]
+            request = ('w %d %d ' % (i, len(bts))) + ' '.join([str(x) for x in bts])
+            self.send(request)
+            self.recv()
 
     def update_memory_page(self, page):
         self.send('r %d 256' % (page * 0x100))
