@@ -66,12 +66,12 @@ class Debugger:
             i += 1
 
     def send(self, cmd):
-        print("> " + cmd)
+        # print("> " + cmd)
         self.ser.write(bytes(cmd + '\n', 'latin1'))
 
     def recv(self):
         b = self.ser.readline().decode('latin1').replace('\n', '').replace('\r', '').split()
-        print("< ", b)
+        # print("< ", b)
         if len(b) > 0 and b[0] == 'x':
             raise Exception('Debugger responded with error')
         return b
@@ -91,7 +91,11 @@ class Debugger:
 
     def get_uart(self):
         self.send('u')
-        return ''.join(self.recv())
+        ret = self.recv()
+        a = []
+        for i in range(0, int(ret[0])):
+            a.append(chr(int(ret[i+1])))
+        return ''.join(a)
 
     def upload_rom(self, rom):
         for i in range(0, len(rom), 16):
@@ -111,6 +115,43 @@ class Debugger:
         self.ser = serial.Serial(serial_port, 115200)
         time.sleep(1)
         self.ack()
+
+##############
+#            #
+#  Terminal  #
+#            #
+##############
+class Terminal:
+
+    cells = []
+    cursor_x = 0
+    cursor_y = 0
+    w = 0
+    h = 0
+
+    def __init__(self, w, h):
+        self.w = w
+        self.h = h
+        for y in range(0, h):
+            self.cells.append(' ' * w)
+
+    def add_str(self, s):
+        for c in s:
+            self.add_char(c)
+
+    def add_char(self, c):
+        line = list(self.cells[self.cursor_y])
+        line[self.cursor_x] = c
+        self.cells[self.cursor_y] = ''.join(line)
+
+        self.cursor_x += 1
+        if self.cursor_x >= self.w:
+            self.cursor_x = 0
+            self.cursor_y += 1
+        if self.cursor_y >= self.h:
+            self.cells.append(' ' * self.w)
+            del self.cells[0]
+            self.cursor_y -= 1
 
 
 ##############
@@ -161,10 +202,11 @@ class MemoryScreen:
 class CodeScreen:
 
     top = 0
-    uart = None
+    terminal = None
 
-    def __init__(self, rows, cols):
+    def __init__(self, rows, cols, terminal):
         self.window = curses.newwin(rows - 1, cols, 1, 0)
+        self.terminal = terminal
 
     def adjust_top(self, pc_visible):
         rows, cols = self.window.getmaxyx()
@@ -201,7 +243,7 @@ class CodeScreen:
     def key(self, c):
         if c == 'S' or c == 's':
             debugger.next()
-            # self.uart.add_str(debugger.get_uart())
+            self.terminal.add_str(debugger.get_uart())
             self.draw()
         elif c == 'R' or c == 'r':
             debugger.reset()
@@ -216,15 +258,19 @@ class CodeScreen:
 
 class UartScreen:
 
-    def __init__(self, rows, cols):
+    terminal = None
+
+    def __init__(self, rows, cols, terminal):
         self.window = curses.newwin(rows - 1, cols, 1, 0)
+        self.terminal = terminal
         self.window.bkgd(curses.color_pair(1), curses.A_BOLD)
         self.window.clear()
 
-    def add_str(self, s):
-        self.window.addstr(s)
-
     def draw(self):
+        rows, cols = self.window.getmaxyx()
+        for y in range(0, min(self.terminal.h, rows)):
+            self.window.addstr(y, 0, self.terminal.cells[y])
+        self.window.move(self.terminal.cursor_y, self.terminal.cursor_x)
         self.window.refresh()
 
     def key(self, c):
@@ -237,10 +283,10 @@ class MainScreen:
 
     def __init__(self):
         rows, cols = stdscr.getmaxyx()
+        terminal = Terminal(80, 25)
         self.memory = MemoryScreen(rows, cols)
-        self.code = CodeScreen(rows, cols)
-        self.uart = UartScreen(rows, cols)
-        self.code.uart = self.uart
+        self.code = CodeScreen(rows, cols, terminal)
+        self.uart = UartScreen(rows, cols, terminal)
 
     def initial_draw(self):
         stdscr.bkgd(curses.color_pair(1), curses.A_BOLD)

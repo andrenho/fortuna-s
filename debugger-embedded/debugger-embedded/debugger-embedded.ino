@@ -167,7 +167,7 @@ public:
         }
         while (digitalRead(IORQ) == LOW) {
           cycle();
-          PRINT_STATE();        
+          PRINT_STATE();
         }
       }
     }
@@ -262,6 +262,11 @@ public:
     pinMode(wrPin, INPUT_PULLUP);
     pinMode(MREQ, INPUT_PULLUP);
     delayMicroseconds(100);
+
+    if (data != 0)
+      DataBus::setData(0);
+    else
+      DataBus::setData(0xff);
 
     for (size_t i = 0; i < 1000; ++i) {
       if (read(addr) == data)
