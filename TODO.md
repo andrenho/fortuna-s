@@ -16,7 +16,7 @@
 - [x] Prepare for connection with debugger (software)
 - [x] Emulate UART (output)
 - [x] Emulate UART (input)
-- [ ] Interrupt
+- [x] Interrupt
 
 ### Debugger (software)
 
@@ -26,7 +26,7 @@
 - [x] Load project
 - [x] Debug (basic)
 - [x] Emulate UART (output)
-- [ ] Emulate UART (input)
+- [x] Emulate UART (input)
 
 ### Z80 software
 
