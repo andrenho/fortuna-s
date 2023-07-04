@@ -210,8 +210,11 @@ class CodeScreen:
 
 class UartScreen:
 
+    def __init__(self, rows, cols):
+        self.window = curses.newwin(rows - 1, cols, 1, 0)
+
     def draw(self):
-        pass
+        self.window.refresh()
 
     def key(self, c):
         pass
@@ -225,7 +228,7 @@ class MainScreen:
         rows, cols = stdscr.getmaxyx()
         self.memory = MemoryScreen(rows, cols)
         self.code = CodeScreen(rows, cols)
-        self.uart = UartScreen()
+        self.uart = UartScreen(rows, cols)
 
     def initial_draw(self):
         stdscr.bkgd(curses.color_pair(1), curses.A_BOLD)
