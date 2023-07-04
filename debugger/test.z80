@@ -1,5 +1,20 @@
-start: 
-    in      a, (0x81)
-    ; ld      a, 'H'
-    out     (0x80), a
-    jp      start
+    org 0x0000
+
+start:
+    ld hl, message      ; Load address of the message into HL
+    call print_string   ; Call subroutine to print the string
+    jp $                ; Jump to the same location (infinite loop)
+
+print_string:
+    ld a, (hl)          ; Load character from memory into A
+    or a                ; Check if it's the end of the string (null character)
+    ret z               ; Return if it's the end of the string
+    
+    out (0x80), a       ; Output the character to I/O address 0x80
+    inc hl              ; Increment HL to point to the next character
+    jr print_string     ; Jump back to print the next character
+
+message:
+    db "Hello, world!", 0  ; String to be printed, terminated with null character
+
+    end
