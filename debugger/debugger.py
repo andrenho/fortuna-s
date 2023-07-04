@@ -66,12 +66,12 @@ class Debugger:
             i += 1
 
     def send(self, cmd):
-        # print("> " + cmd)
+        print("> " + cmd)
         self.ser.write(bytes(cmd + '\n', 'latin1'))
 
     def recv(self):
         b = self.ser.readline().decode('latin1').replace('\n', '').replace('\r', '').split()
-        # print("< ", b)
+        print("< ", b)
         if len(b) > 0 and b[0] == 'x':
             raise Exception('Debugger responded with error')
         return b
@@ -88,6 +88,10 @@ class Debugger:
     def next(self):
         self.send('n')
         self.pc = int(self.recv()[0])
+
+    def get_uart(self):
+        self.send('u')
+        return ''.join(self.recv())
 
     def upload_rom(self, rom):
         for i in range(0, len(rom), 16):
@@ -157,6 +161,7 @@ class MemoryScreen:
 class CodeScreen:
 
     top = 0
+    uart = None
 
     def __init__(self, rows, cols):
         self.window = curses.newwin(rows - 1, cols, 1, 0)
@@ -196,6 +201,7 @@ class CodeScreen:
     def key(self, c):
         if c == 'S' or c == 's':
             debugger.next()
+            # self.uart.add_str(debugger.get_uart())
             self.draw()
         elif c == 'R' or c == 'r':
             debugger.reset()
@@ -212,6 +218,11 @@ class UartScreen:
 
     def __init__(self, rows, cols):
         self.window = curses.newwin(rows - 1, cols, 1, 0)
+        self.window.bkgd(curses.color_pair(1), curses.A_BOLD)
+        self.window.clear()
+
+    def add_str(self, s):
+        self.window.addstr(s)
 
     def draw(self):
         self.window.refresh()
@@ -229,6 +240,7 @@ class MainScreen:
         self.memory = MemoryScreen(rows, cols)
         self.code = CodeScreen(rows, cols)
         self.uart = UartScreen(rows, cols)
+        self.code.uart = self.uart
 
     def initial_draw(self):
         stdscr.bkgd(curses.color_pair(1), curses.A_BOLD)
@@ -249,13 +261,16 @@ class MainScreen:
 
     def key(self, c):
         if c == curses.KEY_F1 or c == 'KEY_F(1)' or c == '1':
+            curses.curs_set(0)
             self.selected = 'code'
             self.initial_draw()
         elif c == curses.KEY_F2 or c == 'KEY_F(2)' or c == '2':
+            curses.curs_set(0)
             self.selected = 'memory'
             self.memory.update_page()
             self.initial_draw()
         elif c == curses.KEY_F3 or c == 'KEY_F(3)' or c == '3':
+            curses.curs_set(1)
             self.selected = 'uart'
             self.initial_draw()
         elif self.selected == 'memory':
@@ -269,7 +284,7 @@ class MainScreen:
 def run_ui(stdscr):
     curses.noecho()
     curses.cbreak()
-    curses.curs_set(False)
+    curses.curs_set(0)
     stdscr.keypad(True)
 
     curses.init_pair(1, curses.COLOR_YELLOW, curses.COLOR_BLUE)
@@ -281,7 +296,7 @@ def run_ui(stdscr):
 
     while True:
         c = stdscr.getkey()
-        if c == curses.KEY_F10 or c == 'q':
+        if c == curses.KEY_F10 or c == '0' or c == 'q':
             break
         else:
             main_screen.key(c)
