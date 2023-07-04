@@ -208,6 +208,15 @@ class CodeScreen:
             self.draw(False)
 
 
+class UartScreen:
+
+    def draw(self):
+        pass
+
+    def key(self, c):
+        pass
+
+
 class MainScreen:
 
     selected = 'code'
@@ -216,13 +225,14 @@ class MainScreen:
         rows, cols = stdscr.getmaxyx()
         self.memory = MemoryScreen(rows, cols)
         self.code = CodeScreen(rows, cols)
+        self.uart = UartScreen()
 
     def initial_draw(self):
         stdscr.bkgd(curses.color_pair(1), curses.A_BOLD)
         stdscr.clear()
         stdscr.chgat(0, 0, -1, curses.color_pair(2))
         stdscr.attron(curses.color_pair(2))
-        stdscr.addstr(' [F1] Code     [F2] Memory    [F10] Quit')
+        stdscr.addstr(' [F1] Code     [F2] Memory    [F3] UART      [F10] Quit')
         stdscr.refresh()
         self.draw()
 
@@ -231,6 +241,8 @@ class MainScreen:
             self.memory.draw()
         elif self.selected == 'code':
             self.code.draw()
+        elif self.selected == 'uart':
+            self.uart.draw()
 
     def key(self, c):
         if c == curses.KEY_F1 or c == 'KEY_F(1)' or c == '1':
@@ -240,10 +252,15 @@ class MainScreen:
             self.selected = 'memory'
             self.memory.update_page()
             self.initial_draw()
+        elif c == curses.KEY_F3 or c == 'KEY_F(3)' or c == '3':
+            self.selected = 'uart'
+            self.initial_draw()
         elif self.selected == 'memory':
             self.memory.key(c)
         elif self.selected == 'code':
             self.code.key(c)
+        elif self.selected == 'uart':
+            self.uart.key(c)
 
 
 def run_ui(stdscr):
