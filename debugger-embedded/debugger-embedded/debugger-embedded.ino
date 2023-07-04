@@ -182,6 +182,17 @@ public:
     PRINT_STATE();
   }
 
+  static void interrupt() {
+    pinMode(INT, OUTPUT);
+    digitalWrite(INT, LOW);
+    cycle();
+    PRINT_STATE();
+    cycle();
+    PRINT_STATE();  
+    digitalWrite(INT, HIGH);
+    pinMode(INT, HIGH);
+  }
+
   static void reset() {
     digitalWrite(RST, LOW);
     for (size_t i = 0; i < 50; ++i) 
@@ -368,6 +379,7 @@ void loop() {
 
       case 'U':  // set character received from UART
         uart_rd_reg = Serial.parseInt();
+        Z80::interrupt();
         break;
 
       case '?':   // request Z80 state

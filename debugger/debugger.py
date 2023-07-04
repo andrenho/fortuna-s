@@ -97,6 +97,9 @@ class Debugger:
             a.append(chr(int(ret[i+1])))
         return ''.join(a)
 
+    def emulate_keypress(self, key):
+        self.send('U %d' % (key & 0xff))
+
     def upload_rom(self, rom):
         for i in range(0, len(rom), 16):
             bts = rom[i:(i+16)]
@@ -280,7 +283,12 @@ class UartScreen:
         self.window.refresh()
 
     def key(self, c):
-        pass
+        stdscr.attron(curses.color_pair(4))
+        stdscr.addstr(2, 2, 'Press a key.')
+        stdscr.refresh()
+        c = stdscr.getch()
+        debugger.emulate_keypress(c)
+        self.draw()
 
 
 class MainScreen:
