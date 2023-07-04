@@ -1,4 +1,5 @@
 start: 
+    ei
     in      a, (0x81)
     ; ld      a, 'H'
     out     (0x80), a
