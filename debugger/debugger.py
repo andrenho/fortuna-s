@@ -137,7 +137,10 @@ class Terminal:
 
     def add_str(self, s):
         for c in s:
-            self.add_char(c)
+            if ord(c) >= 32 and ord(c) < 127:
+                self.add_char(c)
+            elif ord(c) != 0:
+                self.add_char('?')
 
     def add_char(self, c):
         line = list(self.cells[self.cursor_y])
@@ -270,7 +273,10 @@ class UartScreen:
         rows, cols = self.window.getmaxyx()
         for y in range(0, min(self.terminal.h, rows)):
             self.window.addstr(y, 0, self.terminal.cells[y])
-        self.window.move(self.terminal.cursor_y, self.terminal.cursor_x)
+        stdscr.chgat(rows, 0, -1, curses.color_pair(2))
+        stdscr.attron(curses.color_pair(2))
+        stdscr.addstr(rows, 0, ' [K] Emulate keypress')
+        stdscr.move(self.terminal.cursor_y + 1, self.terminal.cursor_x)
         self.window.refresh()
 
     def key(self, c):
@@ -336,6 +342,7 @@ def run_ui(stdscr):
     curses.init_pair(1, curses.COLOR_YELLOW, curses.COLOR_BLUE)
     curses.init_pair(2, curses.COLOR_WHITE, curses.COLOR_GREEN)
     curses.init_pair(3, curses.COLOR_WHITE, curses.COLOR_CYAN)
+    curses.init_pair(4, curses.COLOR_WHITE, curses.COLOR_RED)
 
     main_screen = MainScreen()
     main_screen.initial_draw()

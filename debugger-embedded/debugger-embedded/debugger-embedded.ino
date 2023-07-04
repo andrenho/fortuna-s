@@ -13,7 +13,7 @@ typedef enum {
 #define PRINT_STATE() // printState()
 
 cppQueue uart(1, 64, FIFO, true);
-
+uint8_t uart_rd_reg = 0;
 
 class AddressBus {
 public:
@@ -153,24 +153,31 @@ public:
   }
 
   static void next() {
-    digitalWrite(BUSRQ, HIGH);
+    digitalWrite(BUSRQ, HIGH);  // make sure we're not requesting the bus
     cycle();
     PRINT_STATE();
-    while (digitalRead(M1) != LOW) {
+    
+    while (digitalRead(M1) != LOW) {   // run until we receive a M1 from the Z80
       cycle();
       PRINT_STATE();
+
+      // deal with I/O
       if (digitalRead(IORQ) == LOW) {
         uint8_t addr = AddressBus::getAddress();
-        if (addr == 0x80) {  // TODO - check correct address
+        if (addr == 0x80 && digitalRead(WR) == LOW) {  // serial write
           uint8_t data = DataBus::getData();
           uart.push(&data);
+        } else if (addr == 0x81 && digitalRead(RD) == LOW) {  // serial read
+          DataBus::setData(uart_rd_reg);
         }
-        while (digitalRead(IORQ) == LOW) {
+        while (digitalRead(IORQ) == LOW) {  // keep it like that until IORQ is released
           cycle();
           PRINT_STATE();
         }
+        DataBus::setBusControl(false);
       }
     }
+    
     cycle();
     PRINT_STATE();
   }
@@ -357,6 +364,10 @@ void loop() {
           Serial.print(data);
         }
         Serial.println();
+        break;
+
+      case 'U':  // set character received from UART
+        uart_rd_reg = Serial.parseInt();
         break;
 
       case '?':   // request Z80 state

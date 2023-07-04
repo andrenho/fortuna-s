@@ -15,7 +15,8 @@
 - [x] Z80 functions
 - [x] Prepare for connection with debugger (software)
 - [x] Emulate UART (output)
-- [ ] Emulate UART (input)
+- [x] Emulate UART (input)
+- [ ] Interrupt
 
 ### Debugger (software)
 
@@ -24,7 +25,7 @@
 - [x] Upload ROM
 - [x] Load project
 - [x] Debug (basic)
-- [ ] Emulate UART (output)
+- [x] Emulate UART (output)
 - [ ] Emulate UART (input)
 
 ### Z80 software
