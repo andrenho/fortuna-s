@@ -164,7 +164,7 @@ public:
       // deal with I/O
       if (digitalRead(IORQ) == LOW) {
         uint8_t addr = AddressBus::getAddress();
-        if (addr == 0x80 && digitalRead(WR) == LOW) {  // serial write
+        if (addr == 0x81 && digitalRead(WR) == LOW) {  // serial write
           uint8_t data = DataBus::getData();
           uart.push(&data);
         } else if (addr == 0x81 && digitalRead(RD) == LOW) {  // serial read

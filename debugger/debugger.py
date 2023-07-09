@@ -168,7 +168,7 @@ class Terminal:
 
 class MemoryScreen:
 
-    page = 0
+    page = 0x20
 
     def __init__(self, rows, cols):
         self.window = curses.newwin(rows - 1, cols, 1, 0)
