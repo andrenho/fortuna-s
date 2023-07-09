@@ -1,5 +1,3 @@
-#include <cppQueue.h>
-
 typedef enum {
   D0 = 16, D1 = 18, D2 = 12, D3 = 4, D4 = 2, D5 = 6, D6 = 8, D7 = 14,
   A0_ = 65, A1_ = 63, A2_ = 61, A3_ = 59, A4_ = 57, A5_ = 55, A6_ = 54, A7_ = 56,
@@ -11,9 +9,6 @@ typedef enum {
 
 // uncomment next define to debug Z80 states between cycles
 #define PRINT_STATE() // printState()
-
-cppQueue uart(1, 64, FIFO, true);
-uint8_t uart_rd_reg = 0;
 
 class AddressBus {
 public:
@@ -160,22 +155,6 @@ public:
     while (digitalRead(M1) != LOW) {   // run until we receive a M1 from the Z80
       cycle();
       PRINT_STATE();
-
-      // deal with I/O
-      if (digitalRead(IORQ) == LOW) {
-        uint8_t addr = AddressBus::getAddress();
-        if (addr == 0x81 && digitalRead(WR) == LOW) {  // serial write
-          uint8_t data = DataBus::getData();
-          uart.push(&data);
-        } else if (addr == 0x81 && digitalRead(RD) == LOW) {  // serial read
-          DataBus::setData(uart_rd_reg);
-        }
-        while (digitalRead(IORQ) == LOW) {  // keep it like that until IORQ is released
-          cycle();
-          PRINT_STATE();
-        }
-        DataBus::setBusControl(false);
-      }
     }
     
     cycle();
@@ -365,22 +344,6 @@ void loop() {
       case 'B':   // make Z80 take over bus
         Z80::takeOverBus();
         Serial.println('+');
-        break;
-
-      case 'u':   // get UART chars
-        Serial.print(uart.getCount());
-        while (!uart.isEmpty()) {
-          uint8_t data;
-          uart.pop(&data);
-          Serial.print(' ');
-          Serial.print(data);
-        }
-        Serial.println();
-        break;
-
-      case 'U':  // set character received from UART
-        uart_rd_reg = Serial.parseInt();
-        Z80::interrupt();
         break;
 
       case '?':   // request Z80 state

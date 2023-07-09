@@ -1,28 +1,27 @@
     org 0x0000
 
-    ld  a, 0b10010110
+    ld  a, 0b11         ; reset ACIA
+    out (0x80), a
+
+    ld  a, 0b10010110   ; setup ACIA
     ;        |||||||/
     ;        |||\|/`--- clock divider 64
     ;        ||/ `----- 8N1
     ;        |`-------- TX interrupt disabled
     ;        `--------- RX interrupt enabled
-    ld  a, 0x96
-    ; ld  a, 0xd6
     out (0x80), a
 
-    ld  a, 'J'
+    ld  a, '*'
     out (0x81), a
 
-again:
-    in  a, (0x80)
-    ld  (0x2000), a
+input:
+    in  a, (0x80)       ; check ACIA state
+    and 0b1             ; is RDRF bit set? (has a character been received?)
+    jr  z, input
 
-    in  a, (0x81)
-    ld  (0x2000), a
-
-    jp again
-
-    jp $
+    in  a, (0x81)       ; get character and print it
+    out (0x81), a
+    jp  input
 
 ;start:
 ;    ld hl, message      ; Load address of the message into HL

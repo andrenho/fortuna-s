@@ -89,14 +89,6 @@ class Debugger:
         self.send('n')
         self.pc = int(self.recv()[0])
 
-    def get_uart(self):
-        self.send('u')
-        ret = self.recv()
-        a = []
-        for i in range(0, int(ret[0])):
-            a.append(chr(int(ret[i+1])))
-        return ''.join(a)
-
     def emulate_keypress(self, key):
         self.send('U %d' % (key & 0xff))
 
@@ -118,46 +110,6 @@ class Debugger:
         self.ser = serial.Serial(serial_port, 115200)
         time.sleep(1)
         self.ack()
-
-##############
-#            #
-#  Terminal  #
-#            #
-##############
-class Terminal:
-
-    cells = []
-    cursor_x = 0
-    cursor_y = 0
-    w = 0
-    h = 0
-
-    def __init__(self, w, h):
-        self.w = w
-        self.h = h
-        for y in range(0, h):
-            self.cells.append(' ' * w)
-
-    def add_str(self, s):
-        for c in s:
-            if ord(c) >= 32 and ord(c) < 127:
-                self.add_char(c)
-            elif ord(c) != 0:
-                self.add_char('?')
-
-    def add_char(self, c):
-        line = list(self.cells[self.cursor_y])
-        line[self.cursor_x] = c
-        self.cells[self.cursor_y] = ''.join(line)
-
-        self.cursor_x += 1
-        if self.cursor_x >= self.w:
-            self.cursor_x = 0
-            self.cursor_y += 1
-        if self.cursor_y >= self.h:
-            self.cells.append(' ' * self.w)
-            del self.cells[0]
-            self.cursor_y -= 1
 
 
 ##############
@@ -208,11 +160,9 @@ class MemoryScreen:
 class CodeScreen:
 
     top = 0
-    terminal = None
 
-    def __init__(self, rows, cols, terminal):
+    def __init__(self, rows, cols):
         self.window = curses.newwin(rows - 1, cols, 1, 0)
-        self.terminal = terminal
 
     def adjust_top(self, pc_visible):
         rows, cols = self.window.getmaxyx()
@@ -249,7 +199,6 @@ class CodeScreen:
     def key(self, c):
         if c == 'S' or c == 's':
             debugger.next()
-            self.terminal.add_str(debugger.get_uart())
             self.draw()
         elif c == 'R' or c == 'r':
             debugger.reset()
@@ -262,52 +211,21 @@ class CodeScreen:
             self.draw(False)
 
 
-class UartScreen:
-
-    terminal = None
-
-    def __init__(self, rows, cols, terminal):
-        self.window = curses.newwin(rows - 1, cols, 1, 0)
-        self.terminal = terminal
-        self.window.bkgd(curses.color_pair(1), curses.A_BOLD)
-        self.window.clear()
-
-    def draw(self):
-        rows, cols = self.window.getmaxyx()
-        for y in range(0, min(self.terminal.h, rows)):
-            self.window.addstr(y, 0, self.terminal.cells[y])
-        stdscr.chgat(rows, 0, -1, curses.color_pair(2))
-        stdscr.attron(curses.color_pair(2))
-        stdscr.addstr(rows, 0, ' [K] Emulate keypress')
-        stdscr.move(self.terminal.cursor_y + 1, self.terminal.cursor_x)
-        self.window.refresh()
-
-    def key(self, c):
-        stdscr.attron(curses.color_pair(4))
-        stdscr.addstr(2, 2, 'Press a key.')
-        stdscr.refresh()
-        c = stdscr.getch()
-        debugger.emulate_keypress(c)
-        self.draw()
-
-
 class MainScreen:
 
     selected = 'code'
 
     def __init__(self):
         rows, cols = stdscr.getmaxyx()
-        terminal = Terminal(80, 25)
         self.memory = MemoryScreen(rows, cols)
-        self.code = CodeScreen(rows, cols, terminal)
-        self.uart = UartScreen(rows, cols, terminal)
+        self.code = CodeScreen(rows, cols)
 
     def initial_draw(self):
         stdscr.bkgd(curses.color_pair(1), curses.A_BOLD)
         stdscr.clear()
         stdscr.chgat(0, 0, -1, curses.color_pair(2))
         stdscr.attron(curses.color_pair(2))
-        stdscr.addstr(' [F1] Code     [F2] Memory    [F3] UART      [F10] Quit')
+        stdscr.addstr(' [F1] Code     [F2] Memory      [F10] Quit')
         stdscr.refresh()
         self.draw()
 
@@ -316,8 +234,6 @@ class MainScreen:
             self.memory.draw()
         elif self.selected == 'code':
             self.code.draw()
-        elif self.selected == 'uart':
-            self.uart.draw()
 
     def key(self, c):
         if c == curses.KEY_F1 or c == 'KEY_F(1)' or c == '1':
@@ -329,16 +245,10 @@ class MainScreen:
             self.selected = 'memory'
             self.memory.update_page()
             self.initial_draw()
-        elif c == curses.KEY_F3 or c == 'KEY_F(3)' or c == '3':
-            curses.curs_set(1)
-            self.selected = 'uart'
-            self.initial_draw()
         elif self.selected == 'memory':
             self.memory.key(c)
         elif self.selected == 'code':
             self.code.key(c)
-        elif self.selected == 'uart':
-            self.uart.key(c)
 
 
 def run_ui(stdscr):
