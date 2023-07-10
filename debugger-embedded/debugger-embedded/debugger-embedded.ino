@@ -10,6 +10,25 @@ typedef enum {
 // uncomment next define to debug Z80 states between cycles
 #define PRINT_STATE() // printState()
 
+#define N_BKPS 16
+int breakpoints[N_BKPS] = { -1 };
+
+void swap_breakpoint(int bkp)
+{
+  for (int i = 0; i < N_BKPS; ++i) {
+    if (breakpoints[i] == bkp) {
+      breakpoints[i] = -1;
+      return;
+    }
+  }
+  for (int i = 0; i < N_BKPS; ++i) {
+    if (breakpoints[i] == -1) {
+      breakpoints[i] = bkp;
+      return;
+    }
+  }
+}
+
 class AddressBus {
 public:
 
@@ -281,6 +300,8 @@ void setup() {
   Serial.begin(115200);
   Z80::initialize();
   Memory::initialize();
+  for (int i = 0; i < N_BKPS; ++i)
+          breakpoints[i] = -1;
 }
 
 void loop() {
@@ -345,7 +366,14 @@ start:
               goto start;
           }
           Z80::next();
+          int pc = AddressBus::getAddress();
+          // Serial.println(pc);
+          for (int i = 0; i < N_BKPS; ++i)
+            if (breakpoints[i] == pc)
+              goto breakpoint;
         }
+breakpoint:
+        Serial.println(AddressBus::getAddress());
         break;
 
       case 'b':   // request Z80 bus
@@ -355,6 +383,21 @@ start:
 
       case 'B':   // make Z80 take over bus
         Z80::takeOverBus();
+        Serial.println('+');
+        break;
+
+      case 'k':   // swap breakpoint
+        swap_breakpoint(Serial.parseInt());
+        for (int i = 0; i < N_BKPS; ++i) {
+          Serial.print(breakpoints[i]);
+          Serial.print(' ');          
+        }
+        Serial.println();
+        break;
+
+      case 'c':   // clear breakpoints
+        for (int i = 0; i < N_BKPS; ++i)
+          breakpoints[i] = -1;
         Serial.println('+');
         break;
 
