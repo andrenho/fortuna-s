@@ -53,6 +53,14 @@ class Debugger:
     source = []
     source_map = {}
     source_map_pc = {}
+    dbg_source = None
+    rom = None
+
+    def initialize(self, dbg_source=self.dbg_source, rom=self.rom):
+        print("Uploading ROM...")
+        debugger.update_source(dbg_source)
+        debugger.upload_rom(rom)
+        debugger.reset()
 
     def update_source(self, src):
         self.source = src.split("\n")
@@ -296,12 +304,9 @@ dbg_source, rom = compile_source(sys.argv[2])
 
 debugger = Debugger()
 debugger.open_communication(sys.argv[1])
-print("Uploading ROM...")
-debugger.update_source(dbg_source)
-debugger.upload_rom(rom)
+debugger.initialize(dbg_source, rom)
 del rom
 
-debugger.reset()
 
 stdscr = curses.initscr()
 curses.start_color()
