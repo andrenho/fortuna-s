@@ -22,10 +22,18 @@ nextchr:
 	cp	BACKSPACE		; is BACKSPACE?
 	jr	z, backspace
 
+	ld	b, a			; check if the line has less than 127 characters
+	ld	a, l
+	cp	10
+	jr	c, .has_space
+	jr	nextchr
+.has_space:
+	ld	a, b
+
 	out	(UART), a		; print key pressed
 	ld	(hl), a			; add to buffer
 	inc	hl
-	jp	nextchr
+	jr	nextchr
 
 
 backspace:
@@ -40,11 +48,11 @@ backspace:
 	ld	a, BACKSPACE
 	out	(UART), a
 	dec	hl			; decrement buffer
-	jp	nextchr
+	jr	nextchr
 
 
 enter:
-	jp	nextchr
+	jr	nextchr
 
 
 ; vim:ts=8:sw=8:sts=8:noexpandtab

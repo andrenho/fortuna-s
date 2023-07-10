@@ -16,8 +16,9 @@ A simple computer based on a Z80.
 
 ```
 0000-1FFF   ROM
-2000-27FF   RAM (reserved for operating system)
-2800-FFFF   Bankswitched RAM
+2000-FFFF   Bankswitched RAM
+  2000-27FF   RAM (reserved for operating system)
+  2800-FFFF   Free for application use
 ```
 
 ## I/O
