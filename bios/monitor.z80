@@ -24,7 +24,7 @@ nextchr:
 
 	ld	b, a			; check if the line has less than 127 characters
 	ld	a, l
-	cp	10
+	cp	128
 	jr	c, .has_space
 	jr	nextchr
 .has_space:
@@ -52,6 +52,8 @@ backspace:
 
 
 enter:
+	ld	a, ENTER
+	out	(UART), a
 	jr	nextchr
 
 
