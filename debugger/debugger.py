@@ -56,11 +56,17 @@ class Debugger:
     dbg_source = None
     rom = None
 
-    def initialize(self, dbg_source=self.dbg_source, rom=self.rom):
-        print("Uploading ROM...")
-        debugger.update_source(dbg_source)
-        debugger.upload_rom(rom)
+    def initialize(self, dbg_source=None, rom=None):
+        stdscr.clear()
+        stdscr.addstr("Uploading ROM...")
+        stdscr.refresh()
+        debugger.update_source(dbg_source or self.dbg_source)
+        debugger.upload_rom(rom or self.rom)
         debugger.reset()
+        if dbg_source:
+            self.dbg_source = dbg_source
+        if rom:
+            self.rom = rom
 
     def update_source(self, src):
         self.source = src.split("\n")
@@ -110,8 +116,9 @@ class Debugger:
             request = ('w %d %d ' % (i, len(bts))) + ' '.join([str(x) for x in bts])
             self.send(request)
             self.recv()
-            print('.', end='')
-        print()
+            stdscr.addch('.')
+            stdscr.refresh()
+        stdscr.addstr("\n")
 
     def update_memory_page(self, page):
         self.send('r %d 256' % (page * 0x100))
@@ -207,15 +214,12 @@ class CodeScreen:
                 pass
         stdscr.chgat(rows, 0, -1, curses.color_pair(2))
         stdscr.attron(curses.color_pair(2))
-        stdscr.addstr(rows, 0, ' [S] Step    [R] Reset   [X] Run')
+        stdscr.addstr(rows, 0, ' [S] Step    [R] Reload   [X] Run')
         self.window.refresh()
 
     def key(self, c):
         if c == 'S' or c == 's':
             debugger.next()
-            self.draw()
-        elif c == 'R' or c == 'r':
-            debugger.reset()
             self.draw()
         elif c == 'X' or c == 'x':
             debugger.run()
@@ -262,6 +266,9 @@ class MainScreen:
             self.selected = 'memory'
             self.memory.update_page()
             self.initial_draw()
+        elif c == 'R' or c == 'r':
+            debugger.initialize()
+            self.initial_draw()
         elif self.selected == 'memory':
             self.memory.key(c)
         elif self.selected == 'code':
@@ -304,10 +311,11 @@ dbg_source, rom = compile_source(sys.argv[2])
 
 debugger = Debugger()
 debugger.open_communication(sys.argv[1])
-debugger.initialize(dbg_source, rom)
-del rom
-
 
 stdscr = curses.initscr()
 curses.start_color()
+
+debugger.initialize(dbg_source, rom)
+del rom
+
 wrapper(run_ui)
