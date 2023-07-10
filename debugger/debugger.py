@@ -139,7 +139,9 @@ class MemoryScreen:
             self.window.addstr(i + 2, 4, '{:04X}  :'.format(addr))
             for j in range(0, 16):
                 x = 13 + (j * 3) + (0 if j < 8 else 1)
-                self.window.addstr(i + 2, x, '{:02X}'.format(debugger.memory[addr + j]))
+                data = debugger.memory[addr + j]
+                self.window.addstr(i + 2, x, '{:02X}'.format(data))
+                self.window.addch(i + 2, 67 + j, chr(data) if data >= 32 and data < 127 else '.')
         rows, cols = self.window.getmaxyx()
         stdscr.chgat(rows, 0, -1, curses.color_pair(2))
         stdscr.attron(curses.color_pair(2))
