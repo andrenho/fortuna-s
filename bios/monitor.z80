@@ -1,5 +1,6 @@
 BUFFER		= 0x2000
 BACKSPACE	= 8
+CR              = 10
 ENTER		= 13
 
 start:
@@ -52,9 +53,12 @@ backspace:
 
 
 enter:
+	ld	a, CR			; print ENTER
+	out	(UART), a
 	ld	a, ENTER
 	out	(UART), a
-	jr	nextchr
+
+	jr	start
 
 
 ; vim:ts=8:sw=8:sts=8:noexpandtab

@@ -27,3 +27,19 @@ A simple computer based on a Z80.
 0x80  UART config (MC65B80)
 0x81  UART read/write
 ```
+
+## Monitor
+
+Example commands:
+
+```
+2000             Read RAM location 0x2000
+2000.20FF        Read RAM locations from 0x2000 to 0x20FF
+2000:A8          Set RAM location 0x2000 to 0xA8
+2000:A8 F0 42    Set RAM locations from 0x2000 to 0x2002
+:42 78 AF B8     Continue setting RAM locations
+2000 R           Run program at 0x2000
+20 I             I/O read from port 0x20
+20:A8 I          I/O read to port 0x20
+```
+
