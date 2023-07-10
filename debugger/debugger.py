@@ -89,6 +89,10 @@ class Debugger:
         self.send('n')
         self.pc = int(self.recv()[0])
 
+    def run(self):
+        self.send('x')
+        # self.pc = int(self.recv()[0])
+
     def emulate_keypress(self, key):
         self.send('U %d' % (key & 0xff))
 
@@ -193,7 +197,7 @@ class CodeScreen:
                 pass
         stdscr.chgat(rows, 0, -1, curses.color_pair(2))
         stdscr.attron(curses.color_pair(2))
-        stdscr.addstr(rows, 0, ' [S] Step   [R] Reset')
+        stdscr.addstr(rows, 0, ' [S] Step    [R] Reset   [X] Run')
         self.window.refresh()
 
     def key(self, c):
@@ -202,6 +206,9 @@ class CodeScreen:
             self.draw()
         elif c == 'R' or c == 'r':
             debugger.reset()
+            self.draw()
+        elif c == 'X' or c == 'x':
+            debugger.run()
             self.draw()
         elif c == 'KEY_DOWN':
             self.top += 1

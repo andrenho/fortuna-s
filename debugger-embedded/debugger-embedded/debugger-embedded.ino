@@ -287,6 +287,7 @@ void loop() {
   if (Serial.available() > 0) {
 
     char c = Serial.read();
+start:
     switch (c) {
 
       case 'h':  // acknowledgement
@@ -334,6 +335,17 @@ void loop() {
       case 'n':   // Z80 run until next instruction
         Z80::next();
         Serial.println(AddressBus::getAddress());
+        break;
+
+      case 'x':
+        while (true) {
+          if (Serial.available() > 0) {
+            c = Serial.read();
+            if (c != 10 && c != 13)
+              goto start;
+          }
+          Z80::next();
+        }
         break;
 
       case 'b':   // request Z80 bus
