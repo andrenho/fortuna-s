@@ -9,8 +9,8 @@ A simple computer based on a Z80.
 * 115200 baud UART (using MC65B80)
 * SDCard storage
 * VGA + USB keyboard terminal
-* Connection for external device
-
+* Additional header for connecting external devices
+* Debugger board, when plugged to the computer allows for code debugging
 
 ## Memory map
 
