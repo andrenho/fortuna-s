@@ -214,7 +214,7 @@ class CodeScreen:
                 pass
         stdscr.chgat(rows, 0, -1, curses.color_pair(2))
         stdscr.attron(curses.color_pair(2))
-        stdscr.addstr(rows, 0, ' [S] Step    [R] Reload   [X] Run')
+        stdscr.addstr(rows, 0, ' [S] Step  [R] Reload  [B] Breakpoint  [C] Clear breakpoints  [X] Run')
         self.window.refresh()
 
     def key(self, c):
