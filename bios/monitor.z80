@@ -1,4 +1,9 @@
 BUFFER		= 0x2000
+ADDR_START      = 0x2080
+ADDR_END        = 0x2082
+DATA            = 0x2084
+COMMAND         = 0x2085
+
 BACKSPACE	= 8
 CR              = 10
 ENTER		= 13
@@ -17,9 +22,6 @@ nextchr:
 
 	in	a, (UART)		; get key pressed
 
-	cp	ENTER  			; is ENTER?
-	jr	z, enter
-
 	cp	BACKSPACE		; is BACKSPACE?
 	jr	z, backspace
 
@@ -34,7 +36,11 @@ nextchr:
 	out	(UART), a		; print key pressed
 	ld	(hl), a			; add to buffer
 	inc	hl
-	jr	nextchr
+	
+	cp	ENTER  			; is ENTER?
+	jr	z, enter
+
+	jr	nextchr			; otherwise, continue
 
 
 backspace:
@@ -53,10 +59,29 @@ backspace:
 
 
 enter:
-	ld	a, CR			; print ENTER
+	ld	a, CR			; print CR
 	out	(UART), a
-	ld	a, ENTER
-	out	(UART), a
+
+buffer_to_upper:
+	ld	hl, BUFFER		; go through all the buffer
+.next:
+	ld	a, (hl)
+	
+	cp	a, ENTER		; if ENTER, bail out
+	jr	z, .done
+	
+	cp	'a'			; if < 'a', skip it
+	jr	c, .skip
+
+	sub	32			; convert to uppercase (ex. 'a' - 32 = 'A')
+	ld	(hl), a
+
+.skip:
+	inc	hl			; increase pointer and do for the next char
+	jr	.next
+
+.done:
+
 
 	jr	start
 
