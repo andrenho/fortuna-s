@@ -1,0 +1,20 @@
+ACIA_RESET = 0b11
+
+ACIA_CONFIG = 0b10010110
+	;     |||||||/
+	;     |||\|/`--- clock divider 64
+	;     ||/ `----- 8N1
+	;     |`-------- TX interrupt disabled
+	;     `--------- RX interrupt enabled
+
+	; 
+	; initialize ACIA (UART)
+	;
+
+	ld  a, ACIA_RESET
+	out (UART_CONFIG), a
+
+	ld  a, ACIA_CONFIG
+	out (UART_CONFIG), a
+
+; vim:ts=8:sw=8:sts=8:noexpandtab

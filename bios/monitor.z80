@@ -1,0 +1,50 @@
+BUFFER		= 0x2000
+BACKSPACE	= 8
+ENTER		= 13
+
+start:
+	ld	hl, BUFFER
+	ld      a, '*'			; print prompt
+	out     (UART), a
+	ld      a, ' '
+	out     (UART), a
+
+nextchr:
+	in	a, (UART_CONFIG)	; key pressed?
+	and	UART_INPUT_MSK
+	jr	z, nextchr
+
+	in	a, (UART)		; get key pressed
+
+	cp	ENTER  			; is ENTER?
+	jr	z, enter
+
+	cp	BACKSPACE		; is BACKSPACE?
+	jr	z, backspace
+
+	out	(UART), a		; print key pressed
+	ld	(hl), a			; add to buffer
+	inc	hl
+	jp	nextchr
+
+
+backspace:
+	ld	a, l			; check if L == 0, return
+	or	a
+	jr	z, nextchr
+
+	ld	a, BACKSPACE		; erase last char
+	out	(UART), a
+	ld	a, ' '
+	out	(UART), a
+	ld	a, BACKSPACE
+	out	(UART), a
+	dec	hl			; decrement buffer
+	jp	nextchr
+
+
+enter:
+	jp	nextchr
+
+
+; vim:ts=8:sw=8:sts=8:noexpandtab
