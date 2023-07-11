@@ -8,6 +8,8 @@ BACKSPACE	= 8
 CR              = 10
 ENTER		= 13
 
+INVALID_HEX	= 0xff
+
 start:
 	ld	hl, BUFFER
 	ld      a, '*'			; print prompt
@@ -15,6 +17,9 @@ start:
 	ld      a, ' '
 	out     (UART), a
 
+	;
+	; get the next char from UART
+	;
 nextchr:
 	in	a, (UART_CONFIG)	; key pressed?
 	and	UART_INPUT_MSK
@@ -42,7 +47,9 @@ nextchr:
 
 	jr	nextchr			; otherwise, continue
 
-
+	;
+	; deal with BACKSPACE
+	;
 backspace:
 	ld	a, l			; check if L == 0, return
 	or	a
@@ -58,10 +65,16 @@ backspace:
 	jr	nextchr
 
 
+	; 
+	; deal with ENTER (start processing)
+	;
 enter:
 	ld	a, CR			; print CR
 	out	(UART), a
 
+	; 
+	; convert buffer to uppercase
+	;
 buffer_to_upper:
 	ld	hl, BUFFER		; go through all the buffer
 .next:
@@ -79,10 +92,52 @@ buffer_to_upper:
 .skip:
 	inc	hl			; increase pointer and do for the next char
 	jr	.next
-
 .done:
 
+	;
+	; process input
+	;
+process_input:
+	ld	hl, BUFFER		; HL = buffer pointer
+	ld	de, 0			; DE = current value
+	
+	ld	a, (hl)			; A = current character
+	call	hex_to_dec		; convert from hex to dec
+	
 
+	jp $
+	
+
+
+	;
+	; subroutine - convert hex char (in A) to number (in A)
+	;
+hex_to_dec:
+	cp	'0'			; check if its a number
+	jr	nc, .not_a_number
+	cp	'9' + 1
+	jr	c, .not_a_number
+
+	sub	'0'			; return converted value
+	ret
+	
+.not_a_number:
+	cp	'A'			; check if its a letter
+	jr	nc, .not_a_letter
+	cp	'F' + 1
+	jr	c, .not_a_letter
+	
+	sub	'A'			; return converted value
+	ret
+
+.not_a_letter
+	ld	A, INVALID_HEX
+	ret
+
+
+	;
+	; -----------
+	;
 	jr	start
 
 
