@@ -4,8 +4,8 @@
 
 - [x] Z80
 - [x] ROM + RAM
-- [ ] UART
-- [ ] Power + Reset
+- [x] UART
+- [x] Power + Reset
 - [ ] Expansion pins
 
 ### Debugger (hardware + firmware)

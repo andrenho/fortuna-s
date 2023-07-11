@@ -3,6 +3,7 @@
 import curses
 from curses import wrapper
 import os
+import platform
 import random
 import re
 import serial
@@ -17,7 +18,10 @@ import sys
 ##############
 
 def compile_source(source_filename):
-    cp = subprocess.run(['./vasmz80_oldstyle', '-chklabels', '-L', 'listing.txt', '-Llo', '-nosym', '-x', '-Fbin', '-o', 'rom.bin', source_filename], capture_output=True, text=True)
+    exe = './vasmz80_oldstyle'
+    if platform.system() == 'Windows':
+        exe += '.exe'
+    cp = subprocess.run([exe, '-chklabels', '-L', 'listing.txt', '-Llo', '-nosym', '-x', '-Fbin', '-o', 'rom.bin', source_filename], capture_output=True, text=True)
     print(cp.stdout)
     if cp.stderr != '':
         print(cp.stderr)
@@ -115,7 +119,7 @@ class Debugger:
         self.pc = int(self.recv()[0])
 
     def swap_breakpoint(self, bkp):
-        send.send('k %d' % bkp)
+        self.send('k %d' % bkp)
         self.breakpoints = []
         for s in self.recv():
             addr = int(s)
@@ -220,15 +224,40 @@ class CodeScreen:
                 if i in debugger.source_map and debugger.source_map[i] == debugger.pc:
                     self.window.attron(curses.color_pair(3))
                     self.window.chgat(i - self.top, 0, -1, curses.color_pair(3))
-                self.window.addstr(y, 0, debugger.source[i])
-                self.window.attroff(curses.color_pair(3))
+                    self.window.addstr(y, 0, debugger.source[i])
+                    self.window.attroff(curses.color_pair(3))
+                elif i in debugger.source_map and debugger.source_map[i] in debugger.breakpoints:
+                    self.window.attron(curses.color_pair(4))
+                    self.window.chgat(i - self.top, 0, -1, curses.color_pair(4))
+                    self.window.addstr(y, 0, debugger.source[i])
+                    self.window.attroff(curses.color_pair(4))
+                else:
+                    self.window.addstr(y, 0, debugger.source[i])
                 y += 1
-            except:
+            except (curses.error, IndexError):
                 pass
         stdscr.chgat(rows, 0, -1, curses.color_pair(2))
         stdscr.attron(curses.color_pair(2))
-        stdscr.addstr(rows, 0, ' [S] Step  [R] Reload  [B] Breakpoint  [C] Clear breakpoints  [X] Run')
+        stdscr.addstr(rows, 0, '[S] Step  [R] Reload  [B] Bkp  [C] Clear bkps  [X] Run')
         self.window.refresh()
+
+    def ask_for_breakpoint(self):
+        rows, cols = self.window.getmaxyx()
+        self.window.attron(curses.color_pair(4))
+        self.window.addstr(rows - 1, 57, " Bkp addr (hex):      ")
+        self.window.move(rows - 1, 74)
+        curses.curs_set(1)
+        curses.echo()
+        self.window.refresh()
+        try:
+            bkp_s = self.window.getstr(4).decode()
+            bkp = int(bkp_s, 16)
+            debugger.swap_breakpoint(bkp)
+        except TypeError:
+            pass
+        self.window.attroff(curses.color_pair(4))
+        curses.noecho()
+        curses.curs_set(0)
 
     def key(self, c):
         if c == 'S' or c == 's':
@@ -239,6 +268,9 @@ class CodeScreen:
             self.draw()
         elif c == 'C' or c == 'c':
             debugger.clear_breakpoints()
+            self.draw()
+        elif c == 'B' or c == 'b':
+            self.ask_for_breakpoint()
             self.draw()
         elif c == 'KEY_DOWN':
             self.top += 1
