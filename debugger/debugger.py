@@ -55,6 +55,13 @@ class Debugger:
     source_map_pc = {}
     dbg_source = None
     rom = None
+    breakpoints = []
+
+    def open_communication(self, serial_port):
+        print('Contacting debugger...')
+        self.ser = serial.Serial(serial_port, 115200)
+        time.sleep(1)
+        self.ack()
 
     def initialize(self, dbg_source=None, rom=None):
         stdscr.clear()
@@ -105,7 +112,19 @@ class Debugger:
 
     def run(self):
         self.send('x')
-        # self.pc = int(self.recv()[0])
+        self.pc = int(self.recv()[0])
+
+    def swap_breakpoint(self, bkp):
+        send.send('k %d' % bkp)
+        self.breakpoints = []
+        for s in self.recv():
+            addr = int(s)
+            if addr != -1:
+                self.breakpoints.append(addr)
+
+    def clear_breakpoints(self):
+        self.send('c')
+        self.recv()
 
     def emulate_keypress(self, key):
         self.send('U %d' % (key & 0xff))
@@ -123,12 +142,6 @@ class Debugger:
     def update_memory_page(self, page):
         self.send('r %d 256' % (page * 0x100))
         self.memory[(page * 0x100):((page + 1) * 0x100)] = [int(x) for x in self.recv()]
-
-    def open_communication(self, serial_port):
-        print('Contacting debugger...')
-        self.ser = serial.Serial(serial_port, 115200)
-        time.sleep(1)
-        self.ack()
 
 
 ##############
@@ -223,6 +236,9 @@ class CodeScreen:
             self.draw()
         elif c == 'X' or c == 'x':
             debugger.run()
+            self.draw()
+        elif c == 'C' or c == 'c':
+            debugger.clear_breakpoints()
             self.draw()
         elif c == 'KEY_DOWN':
             self.top += 1
