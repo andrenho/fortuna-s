@@ -11,10 +11,10 @@ ACIA_CONFIG = 0b10010110
 	; initialize ACIA (UART)
 	;
 
-	ld  a, ACIA_RESET
-	out (UART_CONFIG), a
+	ld	a, ACIA_RESET
+	out	(UART_CONFIG), a
 
-	ld  a, ACIA_CONFIG
-	out (UART_CONFIG), a
+	ld	a, ACIA_CONFIG
+	out	(UART_CONFIG), a
 
 ; vim:ts=8:sw=8:sts=8:noexpandtab

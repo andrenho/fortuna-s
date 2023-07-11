@@ -100,32 +100,56 @@ buffer_to_upper:
 process_input:
 	ld	hl, BUFFER		; HL = buffer pointer
 	ld	de, 0			; DE = current value
-	
-	ld	a, (hl)			; A = current character
-	call	hex_to_dec		; convert from hex to dec
-	
 
+.next_char:
+	rlc	d			; "shift" DE left
+	rlc	e
+
+	ld	a, (hl)			; A = current character
+
+	cp	ENTER			; if ENTER, then we're done
+	jp	z, .done_processing
+	
+	call	hex_to_dec		; convert from hex to dec
+
+	cp	INVALID_HEX		; character is not valid - show error
+	jp	z, syntax_error
+
+	; TODO - check for dot, colon or space
+
+	jr	.next_char
+
+.done_processing:
 	jp $
 	
 
+	;
+	; show error message
+	;
+syntax_error:
+	ld	a, '/'
+	out	(UART), a
+	call	print_enter
+	jp	start
+	
 
 	;
 	; subroutine - convert hex char (in A) to number (in A)
 	;
 hex_to_dec:
 	cp	'0'			; check if its a number
-	jr	nc, .not_a_number
-	cp	'9' + 1
 	jr	c, .not_a_number
+	cp	'9' + 1
+	jr	nc, .not_a_number
 
 	sub	'0'			; return converted value
 	ret
 	
 .not_a_number:
 	cp	'A'			; check if its a letter
-	jr	nc, .not_a_letter
-	cp	'F' + 1
 	jr	c, .not_a_letter
+	cp	'F' + 1
+	jr	nc, .not_a_letter
 	
 	sub	'A'			; return converted value
 	ret
@@ -134,11 +158,21 @@ hex_to_dec:
 	ld	A, INVALID_HEX
 	ret
 
+	;
+	; subroutine - print ENTER
+	;
+print_enter:
+	ld	a, CR
+	out	(UART), a
+	ld	a, ENTER
+	out	(UART), a
+	ret
+
 
 	;
 	; -----------
 	;
-	jr	start
+	jp	start
 
 
 ; vim:ts=8:sw=8:sts=8:noexpandtab
