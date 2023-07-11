@@ -21,7 +21,7 @@ def compile_source(source_filename):
     exe = './vasmz80_oldstyle'
     if platform.system() == 'Windows':
         exe += '.exe'
-    cp = subprocess.run([exe, '-chklabels', '-L', 'listing.txt', '-Llo', '-nosym', '-x', '-Fbin', '-o', 'rom.bin', source_filename], capture_output=True, text=True)
+    cp = subprocess.run([exe, '-chklabels', '-L', 'listing.txt', '-Llo', '-Lns', '-ignore-mult-inc', '-nosym', '-x', '-Fbin', '-o', 'rom.bin', source_filename], capture_output=True, text=True)
     print(cp.stdout)
     if cp.stderr != '':
         print(cp.stderr)
@@ -129,6 +129,7 @@ class Debugger:
     def clear_breakpoints(self):
         self.send('c')
         self.recv()
+        self.breakpoints = []
 
     def emulate_keypress(self, key):
         self.send('U %d' % (key & 0xff))
@@ -277,6 +278,12 @@ class CodeScreen:
             self.draw(False)
         elif c == 'KEY_UP':
             self.top -= 1
+            self.draw(False)
+        elif c == 'KEY_PPAGE' or c == 'KEY_UP':
+            self.top -= 24
+            self.draw(False)
+        elif c == 'KEY_NPAGE' or c == 'KEY_DOWN':
+            self.top += 24
             self.draw(False)
 
 
