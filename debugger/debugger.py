@@ -54,6 +54,7 @@ class CommunicationException(Exception):
 class Debugger:
     memory = [0xff for _ in range(64 * 1024)]
     pc = 0
+    registers = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     source = []
     source_map = {}
     source_map_pc = {}
@@ -113,6 +114,13 @@ class Debugger:
     def next(self):
         self.send('n')
         self.pc = int(self.recv()[0])
+        self.registers = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+
+    def next_dbg(self):
+        self.send('N')
+        regs = [int(x) for x in self.recv()]
+        self.registers = regs
+        self.pc = regs[11]
 
     def run(self):
         self.send('x')
@@ -214,11 +222,21 @@ class CodeScreen:
         if self.top >= len(debugger.source) - 2:
             self.top = len(debugger.source) - 2
 
+    def print_registers(self):
+        self.window.addstr("AF:%04X " % debugger.registers[3])
+        self.window.addstr("BC:%04X " % debugger.registers[0])
+        self.window.addstr("DE:%04X " % debugger.registers[1])
+        self.window.addstr("HL:%04X " % debugger.registers[2])
+
     def draw(self, pc_visible=True):
+        
+        # clear screen
         rows, cols = self.window.getmaxyx()
         self.window.bkgd(curses.color_pair(1), curses.A_BOLD)
         self.window.clear()
         self.adjust_top(pc_visible)
+        
+        # write code
         y = 0
         for i in range(self.top, self.top + rows):
             try:
@@ -237,9 +255,21 @@ class CodeScreen:
                 y += 1
             except (curses.error, IndexError):
                 pass
+        
+        # write register bar
+        self.window.move(rows - 2, 0)
+        self.window.clrtoeol()
+        self.window.chgat(rows - 2, 0, -1, curses.color_pair(5))
+        self.window.attron(curses.color_pair(5))
+        self.print_registers()
+        self.window.attroff(curses.color_pair(5))
+        
+        # write status bar
         stdscr.chgat(rows, 0, -1, curses.color_pair(2))
         stdscr.attron(curses.color_pair(2))
         stdscr.addstr(rows, 0, '[S] Step  [R] Reload  [B] Bkp  [C] Clear bkps  [X] Run')
+
+        # refresh
         self.window.refresh()
 
     def ask_for_breakpoint(self):
@@ -262,7 +292,7 @@ class CodeScreen:
 
     def key(self, c):
         if c == 'S' or c == 's':
-            debugger.next()
+            debugger.next_dbg()
             self.draw()
         elif c == 'X' or c == 'x':
             debugger.run()
@@ -340,6 +370,7 @@ def run_ui(stdscr):
     curses.init_pair(2, curses.COLOR_WHITE, curses.COLOR_GREEN)
     curses.init_pair(3, curses.COLOR_WHITE, curses.COLOR_CYAN)
     curses.init_pair(4, curses.COLOR_WHITE, curses.COLOR_RED)
+    curses.init_pair(5, curses.COLOR_WHITE, curses.COLOR_MAGENTA)
 
     main_screen = MainScreen()
     main_screen.initial_draw()
