@@ -8,7 +8,7 @@ typedef enum {
 } Pin;
 
 // uncomment next define to debug Z80 states between cycles
-#define PRINT_STATE() // printState()
+#define PRINT_STATE()  printState()
 
 #define N_BKPS 16
 int breakpoints[N_BKPS] = { -1 };
@@ -184,7 +184,8 @@ public:
     digitalWrite(BUSRQ, HIGH);  // make sure we're not requesting the bus
     cycle();
     PRINT_STATE();
-    
+
+    // TODO - what if it's a two-byte opcode?
     while (digitalRead(M1) != LOW) {   // run until we receive a M1 from the Z80
       cycle();
       PRINT_STATE();
@@ -192,6 +193,13 @@ public:
     
     cycle();
     PRINT_STATE();
+
+    // skip combined instructions
+    static uint8_t previous_instruction = 0x00;
+    bool combined_instruction = (previous_instruction == 0xcb || previous_instruction == 0xdd || previous_instruction == 0xed || previous_instruction == 0xfd);
+    previous_instruction = DataBus::getData();
+    if (combined_instruction)
+      next();
   }
 
   static void interrupt() {
@@ -235,14 +243,14 @@ public:
 
   static void printState() {
     if (digitalRead(IORQ) == LOW)
-      Serial.print(AddressBus::getAddress() & 0x80);
+      Serial.print(AddressBus::getAddress() & 0x80, HEX);
     else if (digitalRead(MREQ) == LOW)
-      Serial.print(AddressBus::getAddress());
+      Serial.print(AddressBus::getAddress(), HEX);
     else
       Serial.print('?');
     Serial.print(' ');
     if (digitalRead(MREQ) == LOW || digitalRead(IORQ) == LOW)
-      Serial.print(DataBus::getData());
+      Serial.print(DataBus::getData(), HEX);
     else
       Serial.print('?');
     Serial.print(" : ");
