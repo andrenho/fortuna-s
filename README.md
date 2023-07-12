@@ -15,9 +15,14 @@ A simple computer based on a Z80.
 ## Memory map
 
 ```
-0000-1FFF   ROM
+0000-1FFF   BIOS
+  0000-00FF   Interrupt vector
+  0100-01FF   DHS (debugger helper subroutine)
+  0200-02FF   Initialization code
+  0300-05FF   Monitor
 2000-FFFF   Bankswitched RAM
   2000-27FF   RAM (reserved for operating system)
+    2000-201F   DHS temporary memory
   2800-FFFF   Free for application use
 ```
 

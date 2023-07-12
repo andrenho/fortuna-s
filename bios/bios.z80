@@ -1,7 +1,14 @@
 	include fortuna-s.z80
 
-	org 0x0
+	jp	0x200		; jump to initialization
+
+	org	0x100
+	include	dhr.z80
+
+	org	0x200
 	include init.z80
+
+	org	0x300	
 	include monitor.z80
 
 ; vim:ts=8:sw=8:sts=8:noexpandtab

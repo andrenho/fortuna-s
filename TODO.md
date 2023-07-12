@@ -40,8 +40,8 @@
 
 ### Debugger (software)
 
-- [ ] Add breakpoints
-- [ ] Run until breakpoint
+- [x] Add breakpoints
+- [x] Run until breakpoint
 - [ ] Get registers
 
 ### Debugger (firmware)
