@@ -229,7 +229,7 @@ public:
     digitalWrite(NMI, LOW);
     next();
     digitalWrite(NMI, HIGH);
-    for (int i = 0; i < 21 + 3 ; ++i)
+    while (DataBus::getData() != 0xc9)   // run until 'ret'
       next();
     takeOverBus();
     for (int i = 0; i < 11; ++i)

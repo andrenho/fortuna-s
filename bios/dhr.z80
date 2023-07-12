@@ -31,4 +31,4 @@ BASE = 0x2000
         ld      (BASE + 18), iy     ; BASE+18 = IY
         ld      (BASE + 20), sp     ; BASE+20 = SP
 
-	reti
+	ret
