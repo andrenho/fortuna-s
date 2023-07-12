@@ -8,7 +8,7 @@ typedef enum {
 } Pin;
 
 // uncomment next define to debug Z80 states between cycles
-#define PRINT_STATE() //   printState()
+#define PRINT_STATE() // printState()
 
 #define N_BKPS 16
 int breakpoints[N_BKPS] = { -1 };
@@ -227,9 +227,9 @@ public:
 
   static void next_debug() {
     digitalWrite(NMI, LOW);
-    cycle();
+    next();
     digitalWrite(NMI, HIGH);
-    for (int i = 0; i < 22 + 3 ; ++i)
+    for (int i = 0; i < 21 + 3 ; ++i)
       next();
     takeOverBus();
     for (int i = 0; i < 11; ++i)
