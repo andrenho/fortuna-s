@@ -8,7 +8,7 @@ typedef enum {
 } Pin;
 
 // uncomment next define to debug Z80 states between cycles
-#define PRINT_STATE()  printState()
+#define PRINT_STATE() //   printState()
 
 #define N_BKPS 16
 int breakpoints[N_BKPS] = { -1 };
@@ -139,8 +139,64 @@ public:
 
 };
 
+class Memory {
+public:
+
+  static void initialize() {
+    pinMode(ROM_WE, OUTPUT);
+    digitalWrite(ROM_WE, HIGH);
+  }
+
+  static uint8_t read(uint32_t addr) {
+    AddressBus::setAddress(addr);
+    pinMode(RD, OUTPUT);
+    pinMode(MREQ, OUTPUT);
+    digitalWrite(RD, LOW);
+    digitalWrite(MREQ, LOW);
+    delayMicroseconds(10);
+    uint8_t data = DataBus::getData();
+    // for (;;);
+    pinMode(RD, INPUT_PULLUP);
+    pinMode(MREQ, INPUT_PULLUP);
+    AddressBus::setBusControl(false);
+    return data;
+  }
+
+  static bool write(uint32_t addr, uint8_t data) {
+    auto wrPin = (addr < 0x2000) ? ROM_WE : WR;
+    AddressBus::setAddress(addr);
+    DataBus::setData(data);
+    pinMode(wrPin, OUTPUT);
+    pinMode(MREQ, OUTPUT);
+    digitalWrite(wrPin, LOW);
+    digitalWrite(MREQ, LOW);
+    delayMicroseconds(100);
+    pinMode(wrPin, INPUT_PULLUP);
+    pinMode(MREQ, INPUT_PULLUP);
+    delayMicroseconds(100);
+
+    if (data != 0)
+      DataBus::setData(0);
+    else
+      DataBus::setData(0xff);
+
+    for (size_t i = 0; i < 1000; ++i) {
+      if (read(addr) == data)
+        return true;
+      delayMicroseconds(100);
+    }
+
+    return false;
+  }
+
+};
+
+
+
 class Z80 {
 public:
+
+  static int regs[12];
 
   static void initialize() {
     pinMode(CLK, OUTPUT);
@@ -169,15 +225,18 @@ public:
     digitalWrite(CLK, LOW);
   }
 
-  static void nmi() {
+  static void next_debug() {
     digitalWrite(NMI, LOW);
     cycle();
     digitalWrite(NMI, HIGH);
-    for (int i = 0; i < 1 + 3 ; ++i)
+    for (int i = 0; i < 22 + 3 ; ++i)
       next();
     takeOverBus();
+    for (int i = 0; i < 11; ++i)
+      regs[i] = ((uint16_t) Memory::read(0x2000 + i) << 8) | Memory::read(0x2000 + i + 1);
     releaseBus();
     next();
+    regs[11] = AddressBus::getAddress();
   }
 
   static void next() {
@@ -266,57 +325,7 @@ public:
 
 };
 
-class Memory {
-public:
-
-  static void initialize() {
-    pinMode(ROM_WE, OUTPUT);
-    digitalWrite(ROM_WE, HIGH);
-  }
-
-  static uint8_t read(uint32_t addr) {
-    AddressBus::setAddress(addr);
-    pinMode(RD, OUTPUT);
-    pinMode(MREQ, OUTPUT);
-    digitalWrite(RD, LOW);
-    digitalWrite(MREQ, LOW);
-    delayMicroseconds(10);
-    uint8_t data = DataBus::getData();
-    // for (;;);
-    pinMode(RD, INPUT_PULLUP);
-    pinMode(MREQ, INPUT_PULLUP);
-    AddressBus::setBusControl(false);
-    return data;
-  }
-
-  static bool write(uint32_t addr, uint8_t data) {
-    auto wrPin = (addr < 0x2000) ? ROM_WE : WR;
-    AddressBus::setAddress(addr);
-    DataBus::setData(data);
-    pinMode(wrPin, OUTPUT);
-    pinMode(MREQ, OUTPUT);
-    digitalWrite(wrPin, LOW);
-    digitalWrite(MREQ, LOW);
-    delayMicroseconds(100);
-    pinMode(wrPin, INPUT_PULLUP);
-    pinMode(MREQ, INPUT_PULLUP);
-    delayMicroseconds(100);
-
-    if (data != 0)
-      DataBus::setData(0);
-    else
-      DataBus::setData(0xff);
-
-    for (size_t i = 0; i < 1000; ++i) {
-      if (read(addr) == data)
-        return true;
-      delayMicroseconds(100);
-    }
-
-    return false;
-  }
-
-};
+int Z80::regs[12] = { 0 };
 
 void setup() {
   Serial.begin(115200);
@@ -399,8 +408,12 @@ breakpoint:
         break;
 
       case 'N':  // next with debugging information
-        Z80::nmi();
-        Serial.println(AddressBus::getAddress());
+        Z80::next_debug();
+        for (int i = 0; i < 12; ++i) {
+          Serial.print(Z80::regs[i]);
+          Serial.print(' ');
+        }
+        Serial.println();
         break;
 
       case 'b':   // request Z80 bus
