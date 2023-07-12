@@ -7,6 +7,11 @@ ACIA_CONFIG = 0b10010110
 	;     |`-------- TX interrupt disabled
 	;     `--------- RX interrupt enabled
 
+	;
+	; setup stack pointer
+	;
+	ld	sp, 0xfffe
+
 	; 
 	; initialize ACIA (UART)
 	;

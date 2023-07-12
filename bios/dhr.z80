@@ -1,18 +1,34 @@
-	; DE
-	push	af
-	ld	a, d
-	ld	(0x2000), a	; 0x2000 = D
-	ld	a, e
-	ld	(0x2000), a	; 0x2001 = E
-	pop	af
+BASE = 0x2000
 
-	; AF
-	push	de
-	push	af
-	pop	de
-	ld	(0x2002), a	; 0x2002 = A
-	ld	a, e
-	ld	(0x2003), a	; 0x2003 = F
-	pop	de
+        ; this procedure stores all registers in memory,
+        ; starting at position 0x2000
+
+        ld      (BASE), bc          ; BASE+0 = BC
+        ld      (BASE + 2), de      ; BASE+2 = DE
+        ld      (BASE + 4), hl      ; BASE+4 = HL
+
+        push    de
+        push    af                  ; DE = AF
+        pop     de
+        ld      (BASE + 6), de      ; BASE+6 = AF
+        pop     de
+
+        exx
+        ld      (BASE + 8), bc      ; BASE+8 = BC'
+        ld      (BASE + 10), de     ; BASE+10 = DE'
+        ld      (BASE + 12), hl     ; BASE+12 = HL'
+        exx
+
+        ex      af, af'
+        push    de
+        push    af                  ; DE = AF
+        pop     de
+        ld      (BASE + 14), de     ; BASE+14 = AF'
+        pop     de
+        ex      af, af'
+
+        ld      (BASE + 16), ix     ; BASE+16 = IX
+        ld      (BASE + 18), iy     ; BASE+18 = IY
+        ld      (BASE + 20), sp     ; BASE+20 = SP
 
 	reti
