@@ -223,18 +223,18 @@ class CodeScreen:
             self.top = len(debugger.source) - 2
 
     def print_registers(self):
-        self.window.addstr("AF:%04X " % debugger.registers[0])
-        self.window.addstr("BC:%04X " % debugger.registers[1])
-        self.window.addstr("DE:%04X " % debugger.registers[2])
-        self.window.addstr("HL:%04X " % debugger.registers[3])
-        self.window.addstr("IX:%04X " % debugger.registers[4])
-        self.window.addstr("IY:%04X " % debugger.registers[5])
-        self.window.addstr("SP:%04X " % debugger.registers[10])
-        self.window.addstr("PC:%04X " % debugger.registers[11])
-        self.window.addstr("AF':%04X " % debugger.registers[6])
-        self.window.addstr("BC':%04X " % debugger.registers[7])
-        self.window.addstr("DE':%04X " % debugger.registers[8])
-        self.window.addstr("HL':%04X " % debugger.registers[9])
+        self.window.addstr("AF:%04X " % (debugger.registers[0] & 0xffff))
+        self.window.addstr("BC:%04X " % (debugger.registers[1] & 0xffff))
+        self.window.addstr("DE:%04X " % (debugger.registers[2] & 0xffff))
+        self.window.addstr("HL:%04X " % (debugger.registers[3] & 0xffff))
+        self.window.addstr("IX:%04X " % (debugger.registers[4] & 0xffff))
+        self.window.addstr("IY:%04X " % (debugger.registers[5] & 0xffff))
+        self.window.addstr("SP:%04X " % (debugger.registers[10] & 0xffff))
+        self.window.addstr("PC:%04X " % (debugger.registers[11] & 0xffff))
+        self.window.addstr("AF':%04X " % (debugger.registers[6] & 0xffff))
+        self.window.addstr("BC':%04X " % (debugger.registers[7] & 0xffff))
+        self.window.addstr("DE':%04X " % (debugger.registers[8] & 0xffff))
+        self.window.addstr("HL':%04X " % (debugger.registers[9] & 0xffff))
 
     def draw(self, pc_visible=True):
         
