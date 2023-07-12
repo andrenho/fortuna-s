@@ -233,7 +233,7 @@ public:
       next();
     takeOverBus();
     for (int i = 0; i < 11; ++i)
-      regs[i] = ((uint16_t) Memory::read(0x2000 + i) << 8) | Memory::read(0x2000 + i + 1);
+      regs[i] = ((uint16_t) Memory::read(0x2000 + (i*2) + 1) << 8) | Memory::read(0x2000 + (i*2));
     releaseBus();
     next();
     regs[11] = AddressBus::getAddress();
@@ -410,7 +410,7 @@ breakpoint:
       case 'N':  // next with debugging information
         Z80::next_debug();
         for (int i = 0; i < 12; ++i) {
-          Serial.print(Z80::regs[i]);
+          Serial.print((uint16_t) Z80::regs[i]);
           Serial.print(' ');
         }
         Serial.println();
