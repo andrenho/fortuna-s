@@ -1,34 +1,21 @@
-BASE = 0x2000
+TOP = 0x2014
+STACK_SAVE = 0x2016
 
-        ; this procedure stores all registers in memory,
-        ; starting at position 0x2000
+	ld	(STACK_SAVE), sp
+	ld	sp, TOP
+	
+	push	iy		; IY = 0x2012
+	push	ix		; IX = 0x2010
+	exx
+	push	hl		; HL' = 0x200e
+	push	de		; DE' = 0x200c
+	push	bc		; BC' = 0x200a
+	push	af		; AF' = 0x2008
+	exx
+	push	hl		; HL = 0x2006
+	push	de		; DE = 0x2004
+	push	bc		; BC = 0x2002
+	push	af		; AF = 0x2000
 
-        ld      (BASE), bc          ; BASE+0 = BC
-        ld      (BASE + 2), de      ; BASE+2 = DE
-        ld      (BASE + 4), hl      ; BASE+4 = HL
-
-        push    de
-        push    af                  ; DE = AF
-        pop     de
-        ld      (BASE + 6), de      ; BASE+6 = AF
-        pop     de
-
-        exx
-        ld      (BASE + 8), bc      ; BASE+8 = BC'
-        ld      (BASE + 10), de     ; BASE+10 = DE'
-        ld      (BASE + 12), hl     ; BASE+12 = HL'
-        exx
-
-        ex      af, af'
-        push    de
-        push    af                  ; DE = AF
-        pop     de
-        ld      (BASE + 14), de     ; BASE+14 = AF'
-        pop     de
-        ex      af, af'
-
-        ld      (BASE + 16), ix     ; BASE+16 = IX
-        ld      (BASE + 18), iy     ; BASE+18 = IY
-        ld      (BASE + 20), sp     ; BASE+20 = SP
-
+	ld	sp, (STACK_SAVE)
 	ret
