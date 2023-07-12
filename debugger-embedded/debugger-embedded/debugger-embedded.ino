@@ -8,7 +8,7 @@ typedef enum {
 } Pin;
 
 // uncomment next define to debug Z80 states between cycles
-#define PRINT_STATE() // printState()
+#define PRINT_STATE()  printState()
 
 #define N_BKPS 16
 int breakpoints[N_BKPS] = { -1 };
@@ -146,8 +146,11 @@ public:
     pinMode(CLK, OUTPUT);
     pinMode(RST, OUTPUT);
     pinMode(BUSRQ, OUTPUT);
+    pinMode(NMI, OUTPUT);
+
     digitalWrite(RST, LOW);
     digitalWrite(BUSRQ, HIGH);
+    digitalWrite(NMI, HIGH);
 
     pinMode(RD, INPUT_PULLUP);
     pinMode(MREQ, INPUT_PULLUP);
@@ -164,6 +167,17 @@ public:
   static void cycle() {
     digitalWrite(CLK, HIGH);
     digitalWrite(CLK, LOW);
+  }
+
+  static void nmi() {
+    digitalWrite(NMI, LOW);
+    cycle();
+    digitalWrite(NMI, HIGH);
+    for (int i = 0; i < 1 + 3 ; ++i)
+      next();
+    takeOverBus();
+    releaseBus();
+    next();
   }
 
   static void next() {
@@ -358,7 +372,7 @@ start:
         Serial.println(AddressBus::getAddress());
         break;
 
-      case 'x':
+      case 'x':   // run
         while (true) {
           if (Serial.available() > 0) {
             c = Serial.read();
@@ -373,6 +387,11 @@ start:
               goto breakpoint;
         }
 breakpoint:
+        Serial.println(AddressBus::getAddress());
+        break;
+
+      case 'N':  // next with debugging information
+        Z80::nmi();
         Serial.println(AddressBus::getAddress());
         break;
 

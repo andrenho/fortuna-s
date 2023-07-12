@@ -1,0 +1,18 @@
+	; DE
+	push	af
+	ld	a, d
+	ld	(0x2000), a	; 0x2000 = D
+	ld	a, e
+	ld	(0x2000), a	; 0x2001 = E
+	pop	af
+
+	; AF
+	push	de
+	push	af
+	pop	de
+	ld	(0x2002), a	; 0x2002 = A
+	ld	a, e
+	ld	(0x2003), a	; 0x2003 = F
+	pop	de
+
+	reti
