@@ -227,6 +227,14 @@ class CodeScreen:
         self.window.addstr("BC:%04X " % debugger.registers[0])
         self.window.addstr("DE:%04X " % debugger.registers[1])
         self.window.addstr("HL:%04X " % debugger.registers[2])
+        self.window.addstr("IX:%04X " % debugger.registers[8])
+        self.window.addstr("IY:%04X " % debugger.registers[9])
+        self.window.addstr("SP:%04X " % debugger.registers[10])
+        self.window.addstr("PC:%04X " % debugger.registers[11])
+        self.window.addstr("AF':%04X " % debugger.registers[7])
+        self.window.addstr("BC':%04X " % debugger.registers[4])
+        self.window.addstr("DE':%04X " % debugger.registers[5])
+        self.window.addstr("HL':%04X " % debugger.registers[6])
 
     def draw(self, pc_visible=True):
         
