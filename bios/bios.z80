@@ -1,6 +1,8 @@
 	include fortuna-s.z80
 
 	ld	a, 42
+	ld	sp, 0xfffe
+	jp	0x66
 again:
 	nop
 	nop
