@@ -413,13 +413,13 @@ def run_ui(stdscr):
     curses.curs_set(0)
     stdscr.keypad(True)
 
-    curses.init_pair(1, curses.COLOR_YELLOW, curses.COLOR_BLUE)   # general text
+    curses.init_pair(1, curses.COLOR_YELLOW, curses.COLOR_BLACK)   # general text
     curses.init_pair(2, curses.COLOR_WHITE, curses.COLOR_GREEN)   # menus
     curses.init_pair(3, curses.COLOR_WHITE, curses.COLOR_CYAN)    # current pc
     curses.init_pair(4, curses.COLOR_WHITE, curses.COLOR_RED)     # breakponts
     curses.init_pair(5, curses.COLOR_WHITE, curses.COLOR_MAGENTA) # register line
-    curses.init_pair(6, curses.COLOR_CYAN, curses.COLOR_BLUE)     # line indicators
-    curses.init_pair(7, curses.COLOR_BLACK, curses.COLOR_BLUE)    # comments
+    curses.init_pair(6, curses.COLOR_CYAN, curses.COLOR_BLACK)     # line indicators
+    curses.init_pair(7, curses.COLOR_BLACK, curses.COLOR_BLACK)    # comments
 
     main_screen = MainScreen()
     main_screen.initial_draw()
