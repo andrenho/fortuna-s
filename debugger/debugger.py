@@ -235,6 +235,20 @@ class CodeScreen:
         self.window.addstr("BC':%04X " % (debugger.registers[7] & 0xffff))
         self.window.addstr("DE':%04X " % (debugger.registers[8] & 0xffff))
         self.window.addstr("HL':%04X " % (debugger.registers[9] & 0xffff))
+        self.window.addstr("FL:")
+        flags = debugger.registers[0] & 0xff
+        if flags & (1 << 0):
+            self.window.addstr("C")
+        if flags & (1 << 1):
+            self.window.addstr("N")
+        if flags & (1 << 2):
+            self.window.addstr("P")
+        if flags & (1 << 4):
+            self.window.addstr("H")
+        if flags & (1 << 6):
+            self.window.addstr("Z")
+        if flags & (1 << 7):
+            self.window.addstr("S")
 
     def draw(self, pc_visible=True):
         
