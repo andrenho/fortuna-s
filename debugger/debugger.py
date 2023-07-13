@@ -66,7 +66,7 @@ class CommunicationException(Exception):
 class Debugger:
     memory = [0xff for _ in range(64 * 1024)]
     pc = 0
-    registers = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    registers = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     source = []
     source_map = {}
     source_map_pc = {}
@@ -126,7 +126,7 @@ class Debugger:
     def next(self):
         self.send('n')
         self.pc = int(self.recv()[0])
-        self.registers = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        self.registers = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
     def next_dbg(self):
         self.send('N')
@@ -227,7 +227,7 @@ class CodeScreen:
         rows, cols = self.window.getmaxyx()
         if pc_visible and debugger.pc in debugger.source_map_pc:
             pc_line = debugger.source_map_pc[debugger.pc]
-            if pc_line < self.top or pc_line >= (self.top + rows) - 1:
+            if pc_line < self.top or pc_line >= (self.top + rows) - 5:
                 self.top = pc_line - 3
         if self.top < 0:
             self.top = 0
@@ -235,7 +235,12 @@ class CodeScreen:
             self.top = len(debugger.source) - 2
 
     def print_registers(self):
-        self.window.addstr("A:%02X " % (debugger.registers[0] >> 8))
+        rows, cols = self.window.getmaxyx()
+        self.window.move(rows - 3, 0)
+        self.window.clrtoeol()
+        self.window.chgat(rows - 3, 0, -1, curses.color_pair(5))
+        self.window.attron(curses.color_pair(5))
+        self.window.addstr("AF:%04X " % (debugger.registers[0] & 0xffff))
         self.window.addstr("BC:%04X " % (debugger.registers[1] & 0xffff))
         self.window.addstr("DE:%04X " % (debugger.registers[2] & 0xffff))
         self.window.addstr("HL:%04X " % (debugger.registers[3] & 0xffff))
@@ -243,10 +248,6 @@ class CodeScreen:
         self.window.addstr("IY:%04X " % (debugger.registers[5] & 0xffff))
         self.window.addstr("SP:%04X " % (debugger.registers[10] & 0xffff))
         self.window.addstr("PC:%04X " % (debugger.registers[11] & 0xffff))
-        self.window.addstr("AF':%04X " % (debugger.registers[6] & 0xffff))
-        self.window.addstr("BC':%04X " % (debugger.registers[7] & 0xffff))
-        self.window.addstr("DE':%04X " % (debugger.registers[8] & 0xffff))
-        self.window.addstr("HL':%04X " % (debugger.registers[9] & 0xffff))
         self.window.addstr("FL:")
         flags = debugger.registers[0] & 0xff
         if flags & (1 << 0):
@@ -262,6 +263,18 @@ class CodeScreen:
         if flags & (1 << 7):
             self.window.addstr("S")
 
+        self.window.move(rows - 2, 0)
+        self.window.clrtoeol()
+        self.window.chgat(rows - 2, 0, -1, curses.color_pair(5))
+        self.window.addstr("Stack: PUSH-> ")
+        for i in range(12, 16):
+            self.window.addstr("%04X " % (debugger.registers[i] & 0xffff))
+        self.window.addstr("  AF':%04X " % (debugger.registers[6] & 0xffff))
+        self.window.addstr("BC':%04X " % (debugger.registers[7] & 0xffff))
+        self.window.addstr("DE':%04X " % (debugger.registers[8] & 0xffff))
+        self.window.addstr("HL':%04X " % (debugger.registers[9] & 0xffff))
+        self.window.attroff(curses.color_pair(5))
+
     def draw(self, pc_visible=True):
         
         # clear screen
@@ -274,18 +287,18 @@ class CodeScreen:
         y = 0
         for i in range(self.top, self.top + rows):
             try:
+                line = replace_tabs_with_spaces(debugger.source[i])[0:cols]
                 if i in debugger.source_map and debugger.source_map[i] == debugger.pc:
                     self.window.attron(curses.color_pair(3))
                     self.window.chgat(i - self.top, 0, -1, curses.color_pair(3))
-                    self.window.addstr(y, 0, debugger.source[i])
+                    self.window.addstr(y, 0, line)
                     self.window.attroff(curses.color_pair(3))
                 elif i in debugger.source_map and debugger.source_map[i] in debugger.breakpoints:
                     self.window.attron(curses.color_pair(4))
                     self.window.chgat(i - self.top, 0, -1, curses.color_pair(4))
-                    self.window.addstr(y, 0, debugger.source[i])
+                    self.window.addstr(y, 0, line)
                     self.window.attroff(curses.color_pair(4))
                 else:
-                    line = replace_tabs_with_spaces(debugger.source[i])
                     self.window.addstr(y, 0, line)
                     comment_pos = line.find(';')
                     if comment_pos > 0:
@@ -296,12 +309,7 @@ class CodeScreen:
                 pass
         
         # write register bar
-        self.window.move(rows - 2, 0)
-        self.window.clrtoeol()
-        self.window.chgat(rows - 2, 0, -1, curses.color_pair(5))
-        self.window.attron(curses.color_pair(5))
         self.print_registers()
-        self.window.attroff(curses.color_pair(5))
         
         # write status bar
         stdscr.chgat(rows, 0, -1, curses.color_pair(2))

@@ -199,7 +199,7 @@ public:
 class Z80 {
 public:
 
-  static int regs[12];
+  static int regs[16];
 
   static void initialize() {
     pinMode(CLK, OUTPUT);
@@ -238,6 +238,9 @@ public:
     takeOverBus();
     for (int i = 0; i < 11; ++i)
       regs[i] = ((uint16_t) Memory::read(0x2000 + (i*2) + 1) << 8) | Memory::read(0x2000 + (i*2));
+    uint16_t sp = regs[10];
+    for (int i = 0; i < 4; ++i)
+      regs[i+12] = ((uint16_t) Memory::read(sp + (i*2) + 1) << 8) | Memory::read(sp + (i*2));
     releaseBus();
     next();
     regs[11] = AddressBus::getAddress();
@@ -329,7 +332,7 @@ public:
 
 };
 
-int Z80::regs[12] = { 0 };
+int Z80::regs[16] = { 0 };
 
 void setup() {
   Serial.begin(115200);
@@ -413,7 +416,7 @@ breakpoint:
 
       case 'N':  // next with debugging information
         Z80::next_debug();
-        for (int i = 0; i < 12; ++i) {
+        for (int i = 0; i < 16; ++i) {
           Serial.print((uint16_t) Z80::regs[i]);
           Serial.print(' ');
         }
