@@ -20,6 +20,7 @@ start:
 	;
 	; get the next char from UART
 	;
+
 nextchr:
 	in	a, (UART_CONFIG)	; key pressed?
 	and	UART_INPUT_MSK
@@ -50,6 +51,7 @@ nextchr:
 	;
 	; deal with BACKSPACE
 	;
+
 backspace:
 	ld	a, l			; check if L == 0, return
 	or	a
@@ -68,6 +70,7 @@ backspace:
 	; 
 	; deal with ENTER (start processing)
 	;
+
 enter:
 	ld	a, CR			; print CR
 	out	(UART), a
@@ -75,6 +78,7 @@ enter:
 	; 
 	; convert buffer to uppercase
 	;
+
 buffer_to_upper:
 	ld	hl, BUFFER		; go through all the buffer
 .next:
@@ -97,8 +101,28 @@ buffer_to_upper:
 	;
 	; process input
 	;
+
 process_input:
 	ld	hl, BUFFER		; HL = buffer pointer
+
+	call	process_hex		; process the next hex value
+
+					; TODO - check for dot, colon, space
+
+	ld	(ADDR_START), de	; if it's just a single value, set it as start and end
+	ld	(ADDR_END), de
+
+	; call	print_ram_values	; print RAM values
+
+	jp	start
+
+	; 
+	; process hex
+	;   IN/OUT: HL (current buffer ptr)
+	;   OUT:    DE (computed hex value)
+	;
+process_hex:
+
 	ld	de, 0			; DE = current value
 
 .next_char:
@@ -107,21 +131,16 @@ process_input:
 
 	ld	a, (hl)			; A = current character
 
-	cp	ENTER			; if ENTER, then we're done
-	jp	z, .done_processing
-	
 	call	hex_to_dec		; convert from hex to dec
 
-	cp	INVALID_HEX		; character is not valid - show error
-	jp	z, syntax_error
+	cp	INVALID_HEX		; character is not valid - finalize processing
+	ret	z
 
-	; TODO - check for dot, colon or space
+	and	e			; copy the converted value over to E
+	ld	a, e
 
 	jr	.next_char
 
-.done_processing:
-	jp $
-	
 
 	;
 	; show error message

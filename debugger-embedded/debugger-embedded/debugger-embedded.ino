@@ -231,6 +231,7 @@ public:
   static void next_debug() {
     digitalWrite(NMI, LOW);
     next();
+    next();
     digitalWrite(NMI, HIGH);
     while (DataBus::getData() != 0xc9)   // run until 'ret'
       next();
