@@ -223,7 +223,7 @@ class CodeScreen:
             self.top = len(debugger.source) - 2
 
     def print_registers(self):
-        self.window.addstr("AF:%04X " % (debugger.registers[0] & 0xffff))
+        self.window.addstr("A:%02X " % (debugger.registers[0] >> 8))
         self.window.addstr("BC:%04X " % (debugger.registers[1] & 0xffff))
         self.window.addstr("DE:%04X " % (debugger.registers[2] & 0xffff))
         self.window.addstr("HL:%04X " % (debugger.registers[3] & 0xffff))

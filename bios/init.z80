@@ -10,7 +10,7 @@ ACIA_CONFIG = 0b10010110
 	;
 	; setup stack pointer
 	;
-	ld	sp, 0xfffe
+	ld	sp, 0x0
 
 	; 
 	; initialize ACIA (UART)

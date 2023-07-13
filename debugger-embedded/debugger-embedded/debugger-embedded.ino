@@ -153,7 +153,7 @@ public:
     pinMode(MREQ, OUTPUT);
     digitalWrite(RD, LOW);
     digitalWrite(MREQ, LOW);
-    delayMicroseconds(10);
+    // delayMicroseconds(10);
     uint8_t data = DataBus::getData();
     // for (;;);
     pinMode(RD, INPUT_PULLUP);
@@ -163,6 +163,9 @@ public:
   }
 
   static bool write(uint32_t addr, uint8_t data) {
+    if (read(addr) == data)
+      return true;
+
     auto wrPin = (addr < 0x2000) ? ROM_WE : WR;
     AddressBus::setAddress(addr);
     DataBus::setData(data);
@@ -170,7 +173,7 @@ public:
     pinMode(MREQ, OUTPUT);
     digitalWrite(wrPin, LOW);
     digitalWrite(MREQ, LOW);
-    delayMicroseconds(100);
+    delayMicroseconds(10);
     pinMode(wrPin, INPUT_PULLUP);
     pinMode(MREQ, INPUT_PULLUP);
     delayMicroseconds(100);
