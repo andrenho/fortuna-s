@@ -274,6 +274,7 @@ class CodeScreen:
                     self.window.attroff(curses.color_pair(4))
                 else:
                     self.window.addstr(y, 0, debugger.source[i])
+                    self.window.chgat(y, 0, 40, curses.color_pair(6))
                 y += 1
             except (curses.error, IndexError):
                 pass
@@ -289,9 +290,16 @@ class CodeScreen:
         # write status bar
         stdscr.chgat(rows, 0, -1, curses.color_pair(2))
         stdscr.attron(curses.color_pair(2))
-        stdscr.addstr(rows, 0, '[S] Step  [R] Reload  [B] Bkp  [C] Clear bkps  [X] Run')
+        stdscr.addstr(rows, 0, '[S] Step  [R] Reload  [B] Bkp  [X] Clear bkps  [C] Run')
 
         # refresh
+        self.window.refresh()
+
+    def draw_running(self):
+        rows, cols = self.window.getmaxyx()
+        self.window.bkgd(curses.color_pair(1), curses.A_BOLD)
+        self.window.clear()
+        self.window.addstr(1, 2, "Running...")
         self.window.refresh()
 
     def ask_for_breakpoint(self):
@@ -316,10 +324,11 @@ class CodeScreen:
         if c == 'S' or c == 's':
             debugger.next_dbg()
             self.draw()
-        elif c == 'X' or c == 'x':
+        elif c == 'C' or c == 'c':
+            self.draw_running()
             debugger.run()
             self.draw()
-        elif c == 'C' or c == 'c':
+        elif c == 'X' or c == 'x':
             debugger.clear_breakpoints()
             self.draw()
         elif c == 'B' or c == 'b':
@@ -393,6 +402,7 @@ def run_ui(stdscr):
     curses.init_pair(3, curses.COLOR_WHITE, curses.COLOR_CYAN)
     curses.init_pair(4, curses.COLOR_WHITE, curses.COLOR_RED)
     curses.init_pair(5, curses.COLOR_WHITE, curses.COLOR_MAGENTA)
+    curses.init_pair(6, curses.COLOR_CYAN, curses.COLOR_BLUE)
 
     main_screen = MainScreen()
     main_screen.initial_draw()

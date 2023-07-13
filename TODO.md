@@ -28,12 +28,6 @@
 - [x] Emulate UART (output)
 - [x] Emulate UART (input)
 
-### Z80 software
-
-- [ ] Monitor
-- [ ] Serial (syscall)
-- [ ] Bankswitching (syscall)
-
 ---
 
 # Version B - improved debugger
@@ -42,14 +36,23 @@
 
 - [x] Add breakpoints
 - [x] Run until breakpoint
-- [ ] Get registers
+- [x] Show registers
+- [ ] Show stack
+- [ ] Code formatting
+- [ ] Next
 
 ### Debugger (firmware)
-- [ ] NMI (for getting registers)
+- [x] NMI (for getting registers)
 
 ### Z80 software
 
-- [ ] NMI (interrupt that gets registers)
+- [x] NMI (interrupt that gets registers)
+
+### Z80 software
+
+- [ ] Monitor
+- [ ] Serial (syscall)
+- [ ] Bankswitching (syscall)
 
 --
 

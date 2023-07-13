@@ -105,7 +105,7 @@ buffer_to_upper:
 process_input:
 	ld	hl, BUFFER		; HL = buffer pointer
 
-	call	process_hex		; process the next hex value
+	call	process_hex_str		; process the next hex value
 
 					; TODO - check for dot, colon, space
 
@@ -117,11 +117,11 @@ process_input:
 	jp	start
 
 	; 
-	; process hex
+	; process hex string
 	;   IN/OUT: HL (current buffer ptr)
 	;   OUT:    DE (computed hex value)
 	;
-process_hex:
+process_hex_str:
 
 	ld	de, 0			; DE = current value
 
@@ -141,16 +141,6 @@ process_hex:
 
 	jr	.next_char
 
-
-	;
-	; show error message
-	;
-syntax_error:
-	ld	a, '/'
-	out	(UART), a
-	call	print_enter
-	jp	start
-	
 
 	;
 	; subroutine - convert hex char (in A) to number (in A)
@@ -187,11 +177,14 @@ print_enter:
 	out	(UART), a
 	ret
 
-
 	;
-	; -----------
+	; show error message
 	;
+syntax_error:
+	ld	a, '/'
+	out	(UART), a
+	call	print_enter
 	jp	start
-
+	
 
 ; vim:ts=8:sw=8:sts=8:noexpandtab
