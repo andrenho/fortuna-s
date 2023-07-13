@@ -289,7 +289,7 @@ class CodeScreen:
                     self.window.addstr(y, 0, line)
                     comment_pos = line.find(';')
                     if comment_pos > 0:
-                        self.window.chgat(y, comment_pos, -1, curses.color_pair(7) | curses.A_BOLD)
+                        self.window.chgat(y, comment_pos, -1, curses.color_pair(7))
                     self.window.chgat(y, 0, 40, curses.color_pair(6))
                 y += 1
             except (curses.error, IndexError):
@@ -419,7 +419,7 @@ def run_ui(stdscr):
     curses.init_pair(4, curses.COLOR_WHITE, curses.COLOR_RED)     # breakponts
     curses.init_pair(5, curses.COLOR_WHITE, curses.COLOR_MAGENTA) # register line
     curses.init_pair(6, curses.COLOR_CYAN, curses.COLOR_BLUE)     # line indicators
-    curses.init_pair(7, curses.COLOR_BLUE, curses.COLOR_BLUE)    # comments
+    curses.init_pair(7, curses.COLOR_BLACK, curses.COLOR_BLUE)    # comments
 
     main_screen = MainScreen()
     main_screen.initial_draw()
