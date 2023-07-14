@@ -240,7 +240,7 @@ public:
       regs[i] = ((uint16_t) Memory::read(0x2000 + (i*2) + 1) << 8) | Memory::read(0x2000 + (i*2));
     uint16_t sp = regs[10];
     for (int i = 0; i < 4; ++i)
-      regs[i+12] = ((uint16_t) Memory::read(sp + (i*2) + 1) << 8) | Memory::read(sp + (i*2));
+      regs[i+12] = ((uint16_t) Memory::read(sp + ((i+1)*2) + 1) << 8) | Memory::read(sp + ((i+1)*2));
     releaseBus();
     next();
     regs[11] = AddressBus::getAddress();
