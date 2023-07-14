@@ -1,13 +1,5 @@
 	include fortuna-s.z80
 
-
-	ld	sp, 0
-	ld	de, 0x1234
-	push	de
-	ld	de, 0xabcd
-	push	de
-
-
 	jp	0x200		; jump to initialization
 
 	;
