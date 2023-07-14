@@ -60,6 +60,8 @@ def compile_source(source_filename):
 #            #
 ##############
 
+JUMP_OPS = [0x10, 0xC2, 0xC3, 0xCA, 0xD2, 0xDA, 0xE9, 0xEA, 0xF2, 0xFA, 0x18, 0x20, 0x28, 0x30, 0x38, 0xC4, 0xCC, 0xCD, 0xD4, 0xDC, 0xE4, 0xEC, 0xF4, 0xFC, 0xC0, 0xC8, 0xC9, 0xD0, 0xD8, 0xE0, 0xE8, 0xF0, 0xF8, 0xC7, 0xCF, 0xD7, 0xDF, 0xE7, 0xEF, 0xF7, 0xFF]
+
 class CommunicationException(Exception):
     pass
 
@@ -140,6 +142,17 @@ class Debugger:
         self.registers = regs
         self.pc = regs[11]
 
+    def next_over(self):
+        sz = self.jump_instruction_sz()
+        if sz:
+            bkp = self.pc + sz
+            if bkp not in self.breakpoints:
+                self.swap_breakpoint(bkp)
+            self.run()
+            self.swap_breakpoint(bkp)
+        else:
+            self.next_dbg()
+
     def run(self):
         self.send('x')
         self.pc = int(self.recv()[0])
@@ -171,6 +184,22 @@ class Debugger:
             stdscr.refresh()
         stdscr.addstr("\n")
 
+    # if the next instruction is a jump, returns instruction size, or None otherwise
+    def jump_instruction_sz(self):
+        self.send('r %d 2' % self.pc)
+        opc = [int(x) for x in self.recv()]
+        if opc[0] in JUMP_OPS or opc == [0xfd, 0xe9] or opc == [0xdd, 0xe9] or opc == [0xed, 0x45] or opc == [0xed, 0x4d]:
+            if opc[0] in [0xe9, 0xc0, 0xc8, 0xc9, 0xd0, 0xd8, 0xe0, 0xe8, 0xf0, 0xf8, 0xc7, 0xcf, 0xd7, 0xdf, 0xe7, 0xef, 0xf7, 0xff]:
+                return 1
+            elif opc[0] in [0x10, 0x18, 0x20, 0x28, 0x30, 0x38, 0xed, 0xdd, 0xfd]:
+                return 2
+            elif opc[0] in [0xc2, 0xc3, 0xca, 0xd2, 0xda, 0xe2, 0xea, 0xf2, 0xfa, 0xc4, 0xcc, 0xcd, 0xd4, 0xdc, 0xe4, 0xec, 0xf4, 0xfc]:
+                return 3
+            else:
+                raise "Instruction not a jump: " + repr(opc)
+        else:
+            return None  # not a jump
+
     def update_memory_page(self, page):
         self.send('r %d 256' % (page * 0x100))
         self.memory[(page * 0x100):((page + 1) * 0x100)] = [int(x) for x in self.recv()]
@@ -196,12 +225,12 @@ class MemoryScreen:
         self.window.bkgd(curses.color_pair(1), curses.A_BOLD)
         for i in range(0, 16):
             addr = (self.page * 0x100) + (i * 0x10)
-            self.window.addstr(i + 2, 4, '{:04X}  :'.format(addr))
+            self.window.addstr(i + 2, 1, '{:04X}  :'.format(addr))
             for j in range(0, 16):
-                x = 13 + (j * 3) + (0 if j < 8 else 1)
+                x = 10 + (j * 3) + (0 if j < 8 else 1)
                 data = debugger.memory[addr + j]
                 self.window.addstr(i + 2, x, '{:02X}'.format(data))
-                self.window.addch(i + 2, 67 + j, chr(data) if data >= 32 and data < 127 else '.')
+                self.window.addch(i + 2, 62 + j, chr(data) if data >= 32 and data < 127 else '.')
         rows, cols = self.window.getmaxyx()
         stdscr.chgat(rows, 0, -1, curses.color_pair(2))
         stdscr.attron(curses.color_pair(2))
@@ -326,7 +355,7 @@ class CodeScreen:
         # write status bar
         stdscr.chgat(rows, 0, -1, curses.color_pair(2))
         stdscr.attron(curses.color_pair(2))
-        stdscr.addstr(rows, 0, '[S] Step  [R] Reload  [B] Bkp  [X] Clear bkps  [C] Run')
+        stdscr.addstr(rows, 0, '[S] Step  [N] Next  [R] Reload  [B] Bkp  [X] Clear bkps  [C] Run')
 
         # refresh
         self.window.refresh()
@@ -363,6 +392,9 @@ class CodeScreen:
         elif c == 'C' or c == 'c':
             self.draw_running()
             debugger.run()
+            self.draw()
+        elif c == 'N' or c == 'n':
+            debugger.next_over()
             self.draw()
         elif c == 'X' or c == 'x':
             debugger.clear_breakpoints()
