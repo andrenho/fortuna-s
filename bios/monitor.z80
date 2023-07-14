@@ -1,8 +1,8 @@
-BUFFER		= 0x2000
-ADDR_START      = 0x2080
-ADDR_END        = 0x2082
-DATA            = 0x2084
-COMMAND         = 0x2085
+BUFFER		= 0x2020
+ADDR_START      = 0x20a0
+ADDR_END        = 0x20a2
+DATA            = 0x20a4
+COMMAND         = 0x20a5
 
 BACKSPACE	= 8
 CR              = 10
@@ -124,20 +124,19 @@ process_input:
 process_hex_str:
 
 	ld	de, 0			; DE = current value
+	ld	a, 0
 
 .next_char:
-	rlc	d			; "shift" DE left
-	rlc	e
+	call	rshift_de_by_4		; add A (latest converted characted) to DE:  DE = (DE << 4) | A
+	or	a
 
 	ld	a, (hl)			; A = current character
 
 	call	hex_to_dec		; convert from hex to dec
+					; A = converted character
 
 	cp	INVALID_HEX		; character is not valid - finalize processing
 	ret	z
-
-	and	e			; copy the converted value over to E
-	ld	a, e
 
 	jr	.next_char
 
@@ -160,16 +159,34 @@ hex_to_dec:
 	cp	'F' + 1
 	jr	nc, .not_a_letter
 	
-	sub	'A'			; return converted value
+	sub	'A' - 0x10		; return converted value
 	ret
 
 .not_a_letter
 	ld	A, INVALID_HEX
 	ret
 
+	; 
+	; subroutine - shift DE by 4
+	;
+
+rshift_de_by_4:
+	push	hl		; save HL
+	ld	hl, 0
+	add	hl, de
+	add	hl, hl		; HL <<= 4
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	ld	d, h		; DE = HL
+	ld	e, l
+	pop	hl		; restore HL
+	ret
+
 	;
 	; subroutine - print ENTER
 	;
+
 print_enter:
 	ld	a, CR
 	out	(UART), a
@@ -180,6 +197,7 @@ print_enter:
 	;
 	; show error message
 	;
+
 syntax_error:
 	ld	a, '/'
 	out	(UART), a
