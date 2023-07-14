@@ -103,7 +103,7 @@ buffer_to_upper:
 	;
 
 process_input:
-	ld	hl, BUFFER		; HL = buffer pointer
+	ld	de, BUFFER		; DE = buffer pointer
 
 	call	process_hex_str		; process the next hex value
 
@@ -131,9 +131,10 @@ process_hex_str:
 	add	hl, hl
 	add	hl, hl
 	add	hl, hl
-	or	l
+	or	l			; HL |= A
+	ld	l, a
 
-	ld	a, (hl)			; A = current character
+	ld	a, (de)			; A = current character
 
 	call	hex_to_dec		; convert from hex to dec
 					; A = converted character
@@ -162,7 +163,7 @@ hex_to_dec:
 	cp	'F' + 1
 	jr	nc, .not_a_letter
 	
-	sub	'A' - 0x10		; return converted value
+	sub	'A' - 0xF		; return converted value
 	ret
 
 .not_a_letter
