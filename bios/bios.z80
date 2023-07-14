@@ -1,5 +1,15 @@
 	include fortuna-s.z80
 
+	call teste
+	nop
+	nop
+	jp next
+teste:
+	ld a, 0xee
+	nop
+	ret
+
+next:
 	jp	0x200		; jump to initialization
 
 	;
