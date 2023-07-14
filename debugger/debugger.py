@@ -66,13 +66,19 @@ class CommunicationException(Exception):
 class Debugger:
     memory = [0xff for _ in range(64 * 1024)]
     pc = 0
-    registers = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    registers = []
     source = []
     source_map = {}
     source_map_pc = {}
     dbg_source = None
     rom = None
     breakpoints = []
+
+    def __init__(self):
+        self.reset_registers()
+
+    def reset_registers(self):
+        self.registers = [None] * 16
 
     def open_communication(self, serial_port):
         print('Contacting debugger...')
@@ -126,7 +132,7 @@ class Debugger:
     def next(self):
         self.send('n')
         self.pc = int(self.recv()[0])
-        self.registers = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        self.reset_registers()
 
     def next_dbg(self):
         self.send('N')
@@ -137,6 +143,7 @@ class Debugger:
     def run(self):
         self.send('x')
         self.pc = int(self.recv()[0])
+        self.reset_registers()
 
     def swap_breakpoint(self, bkp):
         self.send('k %d' % bkp)
@@ -240,39 +247,44 @@ class CodeScreen:
         self.window.clrtoeol()
         self.window.chgat(rows - 3, 0, -1, curses.color_pair(5))
         self.window.attron(curses.color_pair(5))
-        self.window.addstr("AF:%04X " % (debugger.registers[0] & 0xffff))
-        self.window.addstr("BC:%04X " % (debugger.registers[1] & 0xffff))
-        self.window.addstr("DE:%04X " % (debugger.registers[2] & 0xffff))
-        self.window.addstr("HL:%04X " % (debugger.registers[3] & 0xffff))
-        self.window.addstr("IX:%04X " % (debugger.registers[4] & 0xffff))
-        self.window.addstr("IY:%04X " % (debugger.registers[5] & 0xffff))
-        self.window.addstr("SP:%04X " % (debugger.registers[10] & 0xffff))
-        self.window.addstr("PC:%04X " % (debugger.registers[11] & 0xffff))
+        def reg(s, i):
+            return s.replace("{}", ("%04X" % debugger.registers[i]) if debugger.registers[i] != None else "????")
+        self.window.addstr(reg("AF:{} ", 0))
+        self.window.addstr(reg("BC:{} ", 1))
+        self.window.addstr(reg("DE:{} ", 2))
+        self.window.addstr(reg("HL:{} ", 3))
+        self.window.addstr(reg("IX:{} ", 4))
+        self.window.addstr(reg("IY:{} ", 5))
+        self.window.addstr(reg("SP:{} ", 10))
+        self.window.addstr(reg("PC:{} ", 11))
         self.window.addstr("FL:")
-        flags = debugger.registers[0] & 0xff
-        if flags & (1 << 0):
-            self.window.addstr("C")
-        if flags & (1 << 1):
-            self.window.addstr("N")
-        if flags & (1 << 2):
-            self.window.addstr("P")
-        if flags & (1 << 4):
-            self.window.addstr("H")
-        if flags & (1 << 6):
-            self.window.addstr("Z")
-        if flags & (1 << 7):
-            self.window.addstr("S")
+        if debugger.registers[0]:
+            flags = debugger.registers[0] & 0xff
+            if flags & (1 << 0):
+                self.window.addstr("C")
+            if flags & (1 << 1):
+                self.window.addstr("N")
+            if flags & (1 << 2):
+                self.window.addstr("P")
+            if flags & (1 << 4):
+                self.window.addstr("H")
+            if flags & (1 << 6):
+                self.window.addstr("Z")
+            if flags & (1 << 7):
+                self.window.addstr("S")
+        else:
+            self.window.addstr("???")
 
         self.window.move(rows - 2, 0)
         self.window.clrtoeol()
         self.window.chgat(rows - 2, 0, -1, curses.color_pair(5))
         self.window.addstr("Stack: PUSH-> ")
         for i in range(12, 16):
-            self.window.addstr("%04X " % (debugger.registers[i] & 0xffff))
-        self.window.addstr("  AF':%04X " % (debugger.registers[6] & 0xffff))
-        self.window.addstr("BC':%04X " % (debugger.registers[7] & 0xffff))
-        self.window.addstr("DE':%04X " % (debugger.registers[8] & 0xffff))
-        self.window.addstr("HL':%04X " % (debugger.registers[9] & 0xffff))
+            self.window.addstr(reg("{} ", i))
+        self.window.addstr(reg("  AF':{} ", 6))
+        self.window.addstr(reg("BC':{} ", 7))
+        self.window.addstr(reg("DE':{} ", 8))
+        self.window.addstr(reg("HL':{} ", 9))
         self.window.attroff(curses.color_pair(5))
 
     def draw(self, pc_visible=True):
