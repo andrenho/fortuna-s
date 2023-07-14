@@ -123,12 +123,15 @@ process_input:
 	;
 process_hex_str:
 
-	ld	de, 0			; DE = current value
+	ld	hl, 0			; HL = current value
 	ld	a, 0
 
 .next_char:
-	call	rshift_de_by_4		; add A (latest converted characted) to DE:  DE = (DE << 4) | A
-	or	a
+	add	hl, hl			; HL <<= 4
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	or	l
 
 	ld	a, (hl)			; A = current character
 
@@ -164,23 +167,6 @@ hex_to_dec:
 
 .not_a_letter
 	ld	A, INVALID_HEX
-	ret
-
-	; 
-	; subroutine - shift DE by 4
-	;
-
-rshift_de_by_4:
-	push	hl		; save HL
-	ld	hl, 0
-	add	hl, de
-	add	hl, hl		; HL <<= 4
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	ld	d, h		; DE = HL
-	ld	e, l
-	pop	hl		; restore HL
 	ret
 
 	;
