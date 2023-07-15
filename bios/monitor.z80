@@ -130,6 +130,7 @@ process_addr_start:
 
 	call	process_hex_str		; process the next hex value (response in HL)
 	ld	(ADDR_START), hl	; if it's just a single value, set it as start and end
+	inc	hl
 	ld	(ADDR_END), hl
 
 	call	skip_spaces
@@ -146,6 +147,7 @@ process_addr_start:
 process_addr_end:
 	
 	call	process_hex_str		; process ending address
+	inc	hl
 	ld	(ADDR_END), hl
 
 	call	skip_spaces		
@@ -235,22 +237,49 @@ hex_to_dec:
 
 print_ram:
 	ld	hl, (ADDR_START)
-	ld	b, 4
-	call	print_hex
 
+.address:
+	ld	b, 4			; print address
+	call	print_hex
 	ld	a, ':'
 	rst	SYS_PRINT
 	ld	a, ' '
 	rst	SYS_PRINT
 
-	ld	l, (hl)
-	ld	b, 2
-	call	print_hex
+.next:
+	ld	a, (ADDR_END)		; is HL == ADDR_END?...
+	cp	l
+	jp	nz, .continue
+	ld	a, (ADDR_END+1)
+	cp	h
+	jp	nz, .continue
 
-	call	print_enter
-
+	call	print_enter		; ... then we reached the end
 	jp	start
 
+.continue:
+	push	hl
+	ld	l, (hl)			; print data in address
+	ld	b, 2
+	call	print_hex
+	pop	hl
+	ld	a, ' '
+	rst	SYS_PRINT
+
+	inc	hl			; increment pointer
+
+	; if address ends with 0x0 or 0x8, print ENTER and then the address
+	ld	a, l
+	and	0xf
+	jr	z, .newline_and_addr
+	cp	0x8
+	jr	z, .newline_and_addr
+
+	jr	.next			; otherwise, print the next data
+
+.newline_and_addr:
+	call	print_enter
+	jp	.address
 
 	;
 	; print hex value (HL) with (B) digits (2 or 4)
