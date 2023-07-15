@@ -142,6 +142,8 @@ process_hex_str:
 	cp	INVALID_HEX		; character is not valid - finalize processing
 	ret	z
 
+	inc	de
+
 	jr	.next_char
 
 
@@ -163,7 +165,7 @@ hex_to_dec:
 	cp	'F' + 1
 	jr	nc, .not_a_letter
 	
-	sub	'A' - 0xF		; return converted value
+	sub	'A' - 0xA		; return converted value
 	ret
 
 .not_a_letter
