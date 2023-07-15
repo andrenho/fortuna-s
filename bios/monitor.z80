@@ -19,9 +19,9 @@ start:
 
 	ld	hl, BUFFER
 	ld      a, '*'			; print prompt
-	out     (UART), a
+	rst	SYS_PRINT
 	ld      a, ' '
-	out     (UART), a
+	rst	SYS_PRINT
 
 	;
 	; get the next char from UART
@@ -45,7 +45,7 @@ nextchr:
 .has_space:
 	ld	a, b
 
-	out	(UART), a		; print key pressed
+	rst	SYS_PRINT		; print key pressed
 	ld	(hl), a			; add to buffer
 	inc	hl
 	
@@ -64,11 +64,11 @@ backspace:
 	jr	z, nextchr
 
 	ld	a, BACKSPACE		; erase last char
-	out	(UART), a
+	rst	SYS_PRINT
 	ld	a, ' '
-	out	(UART), a
+	rst	SYS_PRINT
 	ld	a, BACKSPACE
-	out	(UART), a
+	rst	SYS_PRINT
 	dec	hl			; decrement buffer
 	jr	nextchr
 
@@ -79,7 +79,7 @@ backspace:
 
 enter:
 	ld	a, CR			; print CR
-	out	(UART), a
+	rst	SYS_PRINT
 
 	; 
 	; convert buffer to uppercase
@@ -167,9 +167,9 @@ print_ram:
 	call	print_hex
 
 	ld	a, ':'
-	out	(UART), a
+	rst	SYS_PRINT
 	ld	a, ' '
-	out	(UART), a
+	rst	SYS_PRINT
 
 	ld	l, (hl)
 	ld	b, 2
@@ -248,7 +248,7 @@ print_nibble:
 .is_number:
 	add	'0'
 
-	out	(UART), a		; print character
+	rst	SYS_PRINT		; print character
 
 	ret
 
@@ -258,9 +258,9 @@ print_nibble:
 
 print_enter:
 	ld	a, CR
-	out	(UART), a
+	rst	SYS_PRINT
 	ld	a, ENTER
-	out	(UART), a
+	rst	SYS_PRINT
 	ret
 
 	;
@@ -269,7 +269,7 @@ print_enter:
 
 syntax_error:
 	ld	a, '/'
-	out	(UART), a
+	rst	SYS_PRINT
 	call	print_enter
 	jp	start
 	

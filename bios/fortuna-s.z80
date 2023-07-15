@@ -1,6 +1,15 @@
+	;
+	; system calls (call with RST)
+	;
+
+SYS_PRINT = 0x8
+
+	;
+	; UART configuration
+	;
+
 UART_CONFIG     = 0x80
 UART		= 0x81
 UART_INPUT_MSK	= 0b1
-
 
 ; vim:ts=8:sw=8:sts=8:noexpandtab

@@ -19,3 +19,5 @@ STACK_SAVE = 0x2014
 
 	ld	sp, (STACK_SAVE)
 	ret
+
+; vim:ts=8:sw=8:sts=8:noexpandtab

@@ -8,7 +8,7 @@
 	jp	init
 
 	;
-	; System calls
+	; System calls (RST vectors)
 	;
 
 	org	0x8		; print character
@@ -28,7 +28,6 @@
 	; BIOS Code
 	;
 
-	org	0x100
 	include init.z80
 	include syscall.z80	
 	include monitor.z80
