@@ -5,6 +5,7 @@ DATA            = 0x20a4
 COMMAND         = 0x20a5  ; R - read, W - write, I - I/O input, O - I/O output, J - jump to
 
 BACKSPACE	= 8
+DEL		= 127
 CR              = 10
 ENTER		= 13
 
@@ -40,6 +41,8 @@ nextchr:
 
 	cp	BACKSPACE		; is BACKSPACE?
 	jr	z, backspace
+	cp	DEL
+	jr	z, backspace
 
 	ld	b, a			; check if the line has less than 127 characters
 	ld	a, l
@@ -63,8 +66,8 @@ nextchr:
 	;
 
 backspace:
-	ld	a, l			; check if L == 0, return
-	or	a
+	ld	a, l			; check if first char, return
+	cp	BUFFER & 0xff
 	jr	z, nextchr
 
 	ld	a, BACKSPACE		; erase last char
@@ -115,28 +118,44 @@ buffer_to_upper:
 process_input:
 	ld	de, BUFFER		; DE = buffer pointer
 
+	call	skip_spaces
+
+	jp	process_addr_start
+
+	;
+	; process ADDR_START
+	;
+
+process_addr_start:
+
 	call	process_hex_str		; process the next hex value (response in HL)
-
-					; TODO - check for dot, colon, space
-
 	ld	(ADDR_START), hl	; if it's just a single value, set it as start and end
 	ld	(ADDR_END), hl
 
-	ld	a, (COMMAND)
-	cp	'R'			; if READ command
-	jr	nz, .skip
-	call	print_ram		; print RAM values
-	jp	start
-.skip
+	call	skip_spaces		; if next key is ENTER, print RAM contents
+	ld	a, (de)
+	cp	ENTER
+	jp	z, print_ram
 
-	call	syntax_error		; if none of the above, then error
-	jp	start
+	jp	syntax_error		; otherwise, syntax error
+
+	;
+	; skip spaces in buffer
+	;
+
+skip_spaces:
+	ld	a, (de)
+	cp	a, ' '
+	ret	nz
+	inc	de
+	jr	skip_spaces
 
 	; 
 	; process hex string
 	;   IN/OUT: HL (current buffer ptr)
 	;   OUT:    DE (computed hex value)
 	;
+
 process_hex_str:
 
 	ld	hl, 0			; HL = current value

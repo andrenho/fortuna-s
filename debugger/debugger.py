@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import argparse
 import curses
 from curses import wrapper
 import os
@@ -381,14 +382,17 @@ class CodeScreen:
         curses.noecho()
         curses.curs_set(0)
 
+    def run(self):
+        self.draw_running()
+        debugger.run()
+        self.draw()
+
     def key(self, c):
         if c == 'S' or c == 's':
             debugger.next_dbg()
             self.draw()
         elif c == 'C' or c == 'c':
-            self.draw_running()
-            debugger.run()
-            self.draw()
+            self.run()
         elif c == 'N' or c == 'n':
             debugger.next_over()
             self.draw()
@@ -474,6 +478,9 @@ def run_ui(stdscr):
     main_screen = MainScreen()
     main_screen.initial_draw()
 
+    if args.run:
+        main_screen.code.run()
+
     while True:
         c = stdscr.getkey()
         if c == curses.KEY_F10 or c == '0' or c == 'q':
@@ -488,14 +495,16 @@ def run_ui(stdscr):
 #            #
 ##############
 
-if len(sys.argv) != 3:
-    print('Usage: %s SERIAL_PORT SOURCE' % sys.argv[0])
-    sys.exit(1)
+parser = argparse.ArgumentParser()
+parser.add_argument('source')
+parser.add_argument('-p', '--serialport', required=True)
+parser.add_argument('-r', '--run', action='store_true')
+args = parser.parse_args()
 
-dbg_source, rom = compile_source(sys.argv[2])
+dbg_source, rom = compile_source(args.source)
 
 debugger = Debugger()
-debugger.open_communication(sys.argv[1])
+debugger.open_communication(args.serialport)
 
 stdscr = curses.initscr()
 curses.start_color()
