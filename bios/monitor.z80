@@ -2,7 +2,7 @@ BUFFER		= 0x2020
 ADDR_START      = 0x20a0
 ADDR_END        = 0x20a2
 DATA            = 0x20a4
-COMMAND         = 0x20a5
+COMMAND         = 0x20a5  ; R - read, W - write, I - I/O input, O - I/O output, J - jump to
 
 BACKSPACE	= 8
 CR              = 10
@@ -11,6 +11,9 @@ ENTER		= 13
 INVALID_HEX	= 0xff
 
 start:
+	ld	a, 'R'			; default command: read
+	ld	(COMMAND), a
+
 	ld	hl, BUFFER
 	ld      a, '*'			; print prompt
 	out     (UART), a
@@ -112,8 +115,14 @@ process_input:
 	ld	(ADDR_START), hl	; if it's just a single value, set it as start and end
 	ld	(ADDR_END), hl
 
+	ld	a, (COMMAND)
+	cp	'R'			; if READ command
+	jr	nz, .skip
 	call	print_ram		; print RAM values
+	jp	start
+.skip
 
+	call	syntax_error		; if none of the above, then error
 	jp	start
 
 	; 

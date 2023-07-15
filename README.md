@@ -47,4 +47,3 @@ R 2000           Run program at 0x2000
 I 20             I/O read from port 0x20
 O 20:A8          I/O read to port 0x20
 ```
-
