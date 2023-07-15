@@ -9,9 +9,6 @@ ACIA_CONFIG = 0b10010110
 
 init:
 
-	;
-	; setup stack pointer
-	;
 	ld	sp, 0x0
 
 	; 
@@ -23,5 +20,7 @@ init:
 
 	ld	a, ACIA_CONFIG
 	out	(UART_CONFIG), a
+
+	jp	monitor
 
 ; vim:ts=8:sw=8:sts=8:noexpandtab

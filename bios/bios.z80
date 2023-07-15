@@ -4,8 +4,8 @@
 	; Initialization
 	;
 
-	call	init
-	jp	monitor
+	nop
+	jp	init
 
 	;
 	; System calls
@@ -14,7 +14,7 @@
 	org	0x8		; print character
 	jp	syscall_print_char
 
-	org	0x38
+	org	0x30
 	jp	monitor
 
 	;
@@ -28,8 +28,9 @@
 	; BIOS Code
 	;
 
-	include syscall.z80	
+	org	0x100
 	include init.z80
+	include syscall.z80	
 	include monitor.z80
 
 ; vim:ts=8:sw=8:sts=8:noexpandtab

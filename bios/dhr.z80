@@ -1,22 +1,21 @@
 TOP = 0x2014
 STACK_SAVE = 0x2014
 
-debugger_helper_routine:
 	ld	(STACK_SAVE), sp
 	ld	sp, TOP
 	
-	push	iy		; IY = 0x2012
-	push	ix		; IX = 0x2010
+	push	iy		; IY  = 0x2012
+	push	ix		; IX  = 0x2010
 	exx
 	push	hl		; HL' = 0x200e
 	push	de		; DE' = 0x200c
 	push	bc		; BC' = 0x200a
 	push	af		; AF' = 0x2008
 	exx
-	push	hl		; HL = 0x2006
-	push	de		; DE = 0x2004
-	push	bc		; BC = 0x2002
-	push	af		; AF = 0x2000
+	push	hl		; HL  = 0x2006
+	push	de		; DE  = 0x2004
+	push	bc		; BC  = 0x2002
+	push	af		; AF  = 0x2000
 
 	ld	sp, (STACK_SAVE)
 	ret
