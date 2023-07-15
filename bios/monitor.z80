@@ -145,6 +145,9 @@ process_addr_start:
 	cp	'R'			; if next key is 'R', then jump to address
 	jp	z, run
 
+	cp	'I'			; if next key is 'I', then perform I/O input
+	jp	z, io_input
+
 	jp	syntax_error		; otherwise, syntax error
 
 process_addr_end:
@@ -229,14 +232,6 @@ hex_to_dec:
 	ld	a, INVALID_HEX
 	ret
 
-	;
-	; run -  jump to address
-	;
-
-run:
-	ld	hl, ADDR_START
-	jp	(hl)
-
 
 	;-------------------
 	; EXECUTE REQUEST
@@ -292,6 +287,40 @@ print_ram:
 	call	print_enter
 	jp	.address
 
+	; 
+	; perform I/O input
+	;
+
+io_input:
+	ld	b, 2			; 2 bytes
+
+	ld	a, (ADDR_START)		; print address
+	ld	l, a
+	call	print_hex
+	ld	a, ':'
+	rst	SYS_PRINT
+	ld	a, ' '
+	rst	SYS_PRINT
+
+	ld	a, (ADDR_START)		; perform IO input
+	ld	c, a
+	in	a, (c)
+	
+	ld	h, 0			; print hex
+	ld	l, a
+	call	print_hex
+	call	print_enter
+
+	jp	start
+
+	;
+	; run -  jump to address
+	;
+
+run:
+	ld	hl, ADDR_START
+	jp	(hl)
+
 	;
 	; print hex value (HL) with (B) digits (2 or 4)
 	;
@@ -340,6 +369,7 @@ print_nibble:
 	rst	SYS_PRINT		; print character
 
 	ret
+
 
 	;
 	; subroutine - print ENTER
