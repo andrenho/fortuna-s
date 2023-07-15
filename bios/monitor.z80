@@ -150,6 +150,9 @@ process_hex_str:
 	; print RAM data (ADDR_START~ADDR_END)
 	;
 print_ram:
+	ld	hl, (ADDR_START)
+
+
 	jp	$
 
 
