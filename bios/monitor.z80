@@ -151,7 +151,8 @@ process_hex_str:
 	;
 print_ram:
 	ld	hl, (ADDR_START)
-
+	ld	b, 4
+	call	print_hex
 
 	jp	$
 
