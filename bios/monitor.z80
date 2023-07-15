@@ -10,6 +10,9 @@ ENTER		= 13
 
 INVALID_HEX	= 0xff
 
+monitor:
+	; TODO - print welcome message
+
 start:
 	ld	a, 'R'			; default command: read
 	ld	(COMMAND), a
