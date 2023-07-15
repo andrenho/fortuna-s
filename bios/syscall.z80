@@ -1,0 +1,15 @@
+        ; 
+        ; print char in A
+        ;
+
+syscall_print_char:
+	push	af
+.reg_not_empty
+	in	a, (UART_CONFIG)
+	and	UART_OUTPUT_MSK
+	jr	z, .reg_not_empty
+	pop	af
+        out	(UART), a
+        ret
+
+; vim:ts=8:sw=8:sts=8:noexpandtab

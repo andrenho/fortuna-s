@@ -43,7 +43,7 @@ Example commands:
 2000:A8          Set RAM location 0x2000 to 0xA8
 2000:A8 F0 42    Set RAM locations from 0x2000 to 0x2002
 :42 78 AF B8     Continue setting RAM locations
-R 2000           Run program at 0x2000
-I 20             I/O read from port 0x20
-O 20:A8          I/O read to port 0x20
+2000 R           Run program at 0x2000
+20 I             I/O read from port 0x20
+20:A8 I          I/O write to port 0x20
 ```

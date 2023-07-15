@@ -51,7 +51,7 @@
 ### Z80 software
 
 - [ ] Monitor
-- [ ] Serial (syscall)
+- [x] Serial (syscall)
 - [ ] Bankswitching (syscall)
 
 --
