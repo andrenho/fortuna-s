@@ -10,6 +10,10 @@ ENTER		= 13
 
 INVALID_HEX	= 0xff
 
+	ld	hl, $a1b2
+	ld	b, 4
+	call	print_hex
+
 start:
 	ld	hl, BUFFER
 	ld      a, '*'			; print prompt
@@ -105,14 +109,14 @@ buffer_to_upper:
 process_input:
 	ld	de, BUFFER		; DE = buffer pointer
 
-	call	process_hex_str		; process the next hex value
+	call	process_hex_str		; process the next hex value (response in HL)
 
 					; TODO - check for dot, colon, space
 
-	ld	(ADDR_START), de	; if it's just a single value, set it as start and end
-	ld	(ADDR_END), de
+	ld	(ADDR_START), hl	; if it's just a single value, set it as start and end
+	ld	(ADDR_END), hl
 
-	; call	print_ram_values	; print RAM values
+	call	print_ram		; print RAM values
 
 	jp	start
 
@@ -146,6 +150,12 @@ process_hex_str:
 
 	jr	.next_char
 
+	;
+	; print RAM data (ADDR_START~ADDR_END)
+	;
+print_ram:
+	jp	$
+
 
 	;
 	; subroutine - convert hex char (in A) to number (in A)
@@ -169,7 +179,54 @@ hex_to_dec:
 	ret
 
 .not_a_letter
-	ld	A, INVALID_HEX
+	ld	a, INVALID_HEX
+	ret
+
+	;
+	; print hex value (HL) with (B) digits (2 or 4)
+	;
+print_hex:
+	ld	a, b			; if 2 digits, skip
+	cp	2
+	jp	z, .print_2_digits
+
+	ld	a, h
+	repeat 4
+	rra	
+	endrepeat
+	call	print_nibble
+	repeat 4
+	rra
+	endrepeat
+	call	print_nibble
+
+.print_2_digits:
+	ld	a, l
+	repeat 4
+	rra
+	endrepeat
+	call	print_nibble
+	repeat 4
+	rra
+	endrepeat
+	call	print_nibble
+
+	ret
+
+	;
+	; print hex value of nibble in A
+	;
+print_nibble:
+	and	0xf
+
+	cp	0xa			; swap nibble for character
+	jr	c, .is_number
+	add	7
+.is_number:
+	add	'0'
+
+	out	(UART), a		; print character
+
 	ret
 
 	;
