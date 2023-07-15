@@ -11,5 +11,6 @@ SYS_PRINT = 0x8
 UART_CONFIG     = 0x80
 UART		= 0x81
 UART_INPUT_MSK	= 0b1
+UART_OUTPUT_MSK = 0b10
 
 ; vim:ts=8:sw=8:sts=8:noexpandtab
