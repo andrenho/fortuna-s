@@ -142,6 +142,9 @@ process_addr_start:
 	cp	'.'			; if next key is '.', get end address
 	jp	z, process_addr_end
 
+	cp	'R'			; if next key is 'R', then jump to address
+	jp	z, run
+
 	jp	syntax_error		; otherwise, syntax error
 
 process_addr_end:
@@ -225,6 +228,14 @@ hex_to_dec:
 .not_a_letter
 	ld	a, INVALID_HEX
 	ret
+
+	;
+	; run -  jump to address
+	;
+
+run:
+	ld	hl, ADDR_START
+	jp	(hl)
 
 
 	;-------------------
