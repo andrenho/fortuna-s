@@ -154,7 +154,18 @@ print_ram:
 	ld	b, 4
 	call	print_hex
 
-	jp	$
+	ld	a, ':'
+	out	(UART), a
+	ld	a, ' '
+	out	(UART), a
+
+	ld	l, (hl)
+	ld	b, 2
+	call	print_hex
+
+	call	print_enter
+
+	jp	start
 
 
 	;
