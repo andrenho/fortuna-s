@@ -10,10 +10,6 @@ ENTER		= 13
 
 INVALID_HEX	= 0xff
 
-	ld	hl, $a1b2
-	ld	b, 4
-	call	print_hex
-
 start:
 	ld	hl, BUFFER
 	ld      a, '*'			; print prompt
@@ -186,30 +182,30 @@ hex_to_dec:
 	; print hex value (HL) with (B) digits (2 or 4)
 	;
 print_hex:
-	ld	a, b			; if 2 digits, skip
+	ld	a, b			; if only 2 digits, skip
 	cp	2
-	jp	z, .print_2_digits
+	jr	z, .only_2_digits
 
-	ld	a, h
-	repeat 4
+	ld	a, h			; get lower byte
+	ld	c, a			; save A
+	repeat 4			; rotate to lower nibble
 	rra	
 	endrepeat
-	call	print_nibble
-	repeat 4
-	rra
-	endrepeat
-	call	print_nibble
+	call	print_nibble		; print lower nibble
 
-.print_2_digits:
-	ld	a, l
-	repeat 4
-	rra
+	ld	a, c			; restore A
+	call	print_nibble		; print lower nibble
+
+.only_2_digits:
+	ld	a, l			; get upper byte
+	ld	c, a			; save A
+	repeat 4			; rotate to upper nibble
+	rra	
 	endrepeat
-	call	print_nibble
-	repeat 4
-	rra
-	endrepeat
-	call	print_nibble
+	call	print_nibble		; print upper nibble
+
+	ld	a, c			; restore A
+	call	print_nibble		; print lower nibble
 
 	ret
 
