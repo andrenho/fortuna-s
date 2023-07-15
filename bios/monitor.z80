@@ -132,15 +132,31 @@ process_addr_start:
 	ld	(ADDR_START), hl	; if it's just a single value, set it as start and end
 	ld	(ADDR_END), hl
 
-	call	skip_spaces		; if next key is ENTER, print RAM contents
-	ld	a, (de)
-	cp	ENTER
+	call	skip_spaces
+	inc	de
+
+	cp	ENTER			; if next key is ENTER, print RAM contents
+	jp	z, print_ram
+
+	cp	'.'			; if next key is '.', get end address
+	jp	z, process_addr_end
+
+	jp	syntax_error		; otherwise, syntax error
+
+process_addr_end:
+	
+	call	process_hex_str		; process ending address
+	ld	(ADDR_END), hl
+
+	call	skip_spaces		
+
+	cp	ENTER			; if next key is ENTER, print RAM contents
 	jp	z, print_ram
 
 	jp	syntax_error		; otherwise, syntax error
 
 	;
-	; skip spaces in buffer
+	; subroutine - skip spaces in buffer
 	;
 
 skip_spaces:
