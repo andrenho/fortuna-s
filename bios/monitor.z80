@@ -190,9 +190,9 @@ process_data_stream:
 	ld	a, 0			; set data size
 	ld	(DATA_SZ), a
 
+.next:
 	call	skip_spaces
 
-.next:
 	call	process_hex_str		; process the string
 
 	ld	a, l			; put the byte on the DATA array
@@ -206,8 +206,6 @@ process_data_stream:
 
 	inc	bc			; increment pointers
 	inc	de
-
-	call	skip_spaces
 
 	cp	'I'			; if I or O, write to output
 	jp	z, io_write
