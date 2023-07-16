@@ -121,6 +121,9 @@ process_input:
 
 	call	skip_spaces
 
+	cp	':'			; if the line starts with ':', is a continuation of the last address
+	jp	z, continue_write
+
 	call	process_hex_str		; process the next hex value (response in HL)
 	ld	(ADDR_START), hl	; if it's just a single value, set it as start and end
 	inc	hl
@@ -163,6 +166,18 @@ process_addr_end:
 	jp	z, print_ram
 
 	jp	syntax_error		; otherwise, syntax error
+
+	; 
+	; continue writing to RAM
+	;
+
+continue_write:
+
+	inc	de
+	ld	hl, (ADDR_END)
+	inc	hl
+	ld	hl, (ADDR_START)
+	jr	process_data_stream
 
 	;
 	; process subsequent values (in mode Write), and place them in DATA stream
