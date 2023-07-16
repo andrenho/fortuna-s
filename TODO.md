@@ -37,9 +37,10 @@
 - [x] Add breakpoints
 - [x] Run until breakpoint
 - [x] Show registers
-- [ ] Show stack
-- [ ] Code formatting
-- [ ] Next
+- [x] Show stack
+- [x] Code formatting
+- [x] Next
+- [ ] Search function
 
 ### Debugger (firmware)
 - [x] NMI (for getting registers)
@@ -50,14 +51,9 @@
 
 ### Z80 software
 
-- [ ] Monitor
+- [x] Monitor
 - [x] Serial (syscall)
 - [ ] Bankswitching (syscall)
-
-### QOL improvements
-
-- [ ] Debugger: search function
-- [ ] Monitor: document better
 
 --
 
@@ -77,8 +73,6 @@
 
 ---
 
-# Version D - sound and video
+# Version D - video
 
 ---
-
-# Version E - WI-FI
