@@ -54,6 +54,11 @@
 - [x] Serial (syscall)
 - [ ] Bankswitching (syscall)
 
+### QOL improvements
+
+- [ ] Debugger: search function
+- [ ] Monitor: document better
+
 --
 
 # Version C - SD Card

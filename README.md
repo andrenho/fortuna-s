@@ -23,6 +23,7 @@ A simple computer based on a Z80.
 2000-FFFF   Bankswitched RAM
   2000-27FF   RAM (reserved for operating system)
     2000-201F   DHS temporary memory
+    2020-20CF   Monitor temporary memory
   2800-FFFF   Free for application use
 ```
 
