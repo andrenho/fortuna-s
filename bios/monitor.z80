@@ -175,9 +175,9 @@ process_data_stream:
 	ld	a, 0			; set data size
 	ld	(DATA_SZ), a
 
-.next:
 	call	skip_spaces
 
+.next:
 	call	process_hex_str		; process the string
 
 	ld	a, l			; put the byte on the DATA array
@@ -192,13 +192,17 @@ process_data_stream:
 	inc	bc			; increment pointers
 	inc	de
 
-	cp	' '			; if SPACE, prepare for next input
-	jr	z, .next
-	
+	call	skip_spaces
+
+	cp	'I'			; if I or O, write to output
+	jp	z, io_write
+	cp	'O'
+	jp	z, io_write
+
 	cp	ENTER			; if ENTER, finalize and write to RAM
 	jp	z, write_to_ram
 
-	jp	syntax_error
+	jr	.next
 
 	; 
 	; process hex string
@@ -370,6 +374,18 @@ io_input:
 	call	print_enter
 
 	jp	start
+
+	; 
+	; perform I/O output
+	;
+
+io_write:
+	ld	a, (ADDR_START)		; output [ADDR_START] = [DATA]
+	ld	c, a
+	ld	a, (DATA)
+	out	(c), a
+
+	jp start
 
 	;
 	; run -  jump to address
