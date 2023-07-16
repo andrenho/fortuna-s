@@ -174,9 +174,8 @@ process_addr_end:
 continue_write:
 
 	inc	de
-	ld	hl, (ADDR_END)
-	inc	hl
 	ld	hl, (ADDR_START)
+	ld	(ADDR_START), hl
 	jr	process_data_stream
 
 	;
@@ -359,6 +358,8 @@ write_to_ram:
 	inc	hl
 	inc	de
 	djnz	.next
+
+	ld	(ADDR_START), hl
 
 	jp	start
 
