@@ -63,16 +63,31 @@
 
 - [ ] Create hardware for SDCard
 
-### Debugger (firmware + software)
+### Filesystem
 
-- [ ] SDCard support (?)
+- [ ] Design filesystem
+- [ ] Create FUSE library to manage filesystem
 
 ### Z80 software
 
 - [ ] SDCard management
+- [ ] Filesystem support
 
 ---
 
-# Version D - video
+# Version D - CP/M
+
+### Hardware
+
+- [ ] Create I/O port to swap between ROM and RAM
+
+### Software
+
+- [ ] Port CP/M
+  - [ ] Write BIOS
+
+---
+
+# Version E - video
 
 ---
