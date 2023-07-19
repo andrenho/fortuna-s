@@ -3,6 +3,7 @@
 import argparse
 import curses
 from curses import wrapper
+import logging
 import os
 import platform
 import random
@@ -78,8 +79,9 @@ class Debugger:
     rom = None
     breakpoints = []
 
-    def __init__(self):
+    def __init__(self, log=False):
         self.reset_registers()
+        logging.basicConfig(filename='debugger.log', encoding='utf-8', level=logging.DEBUG if log else logging.INFO)
 
     def reset_registers(self):
         self.registers = [None] * 16
@@ -90,11 +92,16 @@ class Debugger:
         time.sleep(1)
         self.ack()
 
-    def initialize(self, dbg_source=None, rom=None):
+    def initialize(self, dbg_source=None, rom=None, clear_rom=False):
         stdscr.clear()
+        debugger.update_source(dbg_source or self.dbg_source)
+        if clear_rom:
+            stdscr.addstr("Clearing ROM...")
+            stdscr.refresh()
+            self.clear_rom()
+            stdscr.addstr("\n")
         stdscr.addstr("Uploading ROM...")
         stdscr.refresh()
-        debugger.update_source(dbg_source or self.dbg_source)
         debugger.upload_rom(rom or self.rom)
         debugger.reset()
         if dbg_source:
@@ -114,12 +121,12 @@ class Debugger:
             i += 1
 
     def send(self, cmd):
-        # print("> " + cmd)
+        logging.debug("> " + cmd)
         self.ser.write(bytes(cmd + '\n', 'latin1'))
 
     def recv(self):
         b = self.ser.readline().decode('latin1').replace('\n', '').replace('\r', '').split()
-        # print("< ", b)
+        logging.debug("< " + repr(b))
         if len(b) > 0 and b[0] == 'x':
             raise Exception('Debugger responded with error')
         return b
@@ -180,6 +187,15 @@ class Debugger:
         for i in range(0, len(rom), 16):
             bts = rom[i:(i+16)]
             request = ('w %d %d ' % (i, len(bts))) + ' '.join([str(x) for x in bts])
+            self.send(request)
+            self.recv()
+            stdscr.addch('.')
+            stdscr.refresh()
+        stdscr.addstr("\n")
+
+    def clear_rom(self):
+        for i in range(0, 0x2000, 16):
+            request = ('w %d 16 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0' % i)
             self.send(request)
             self.recv()
             stdscr.addch('.')
@@ -497,19 +513,21 @@ def run_ui(stdscr):
 
 parser = argparse.ArgumentParser()
 parser.add_argument('source')
-parser.add_argument('-p', '--serialport', required=True)
+parser.add_argument('-p', '--serial-port', required=True)
 parser.add_argument('-r', '--run', action='store_true')
+parser.add_argument('-l', '--log', action='store_true')
+parser.add_argument('-c', '--clear-rom', action='store_true')
 args = parser.parse_args()
 
 dbg_source, rom = compile_source(args.source)
 
-debugger = Debugger()
-debugger.open_communication(args.serialport)
+debugger = Debugger(args.log)
+debugger.open_communication(args.serial_port)
 
 stdscr = curses.initscr()
 curses.start_color()
 
-debugger.initialize(dbg_source, rom)
+debugger.initialize(dbg_source, rom, args.clear_rom)
 del rom
 
 wrapper(run_ui)

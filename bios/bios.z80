@@ -4,7 +4,8 @@
 	; Initialization
 	;
 
-	nop
+	ld	a, 1
+	out	(0), a
 	jp	init
 
 	;
