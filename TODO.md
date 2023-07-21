@@ -53,7 +53,7 @@
 
 - [x] Monitor
 - [x] Serial (syscall)
-- [ ] Bankswitching (syscall)
+- [x] Bankswitching (syscall)
 
 --
 

@@ -145,6 +145,10 @@ public:
   static void initialize() {
     pinMode(ROM_WE, OUTPUT);
     digitalWrite(ROM_WE, HIGH);
+
+    pinMode(A16_, INPUT);
+    pinMode(A17_, INPUT);
+    pinMode(A18_, INPUT);
   }
 
   static uint8_t read(uint32_t addr) {
@@ -190,6 +194,10 @@ public:
     }
 
     return false;
+  }
+
+  static int bank() {
+    return digitalRead(A16_) | (digitalRead(A17_) << 1) | (digitalRead(A18_) << 2);
   }
 
 };
@@ -420,6 +428,8 @@ breakpoint:
           Serial.print((uint16_t) Z80::regs[i]);
           Serial.print(' ');
         }
+        Serial.print(' ');
+        Serial.print(Memory::bank());
         Serial.println();
         break;
 

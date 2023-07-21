@@ -92,17 +92,18 @@ class Debugger:
         time.sleep(1)
         self.ack()
 
-    def initialize(self, dbg_source=None, rom=None, clear_rom=False):
+    def initialize(self, dbg_source=None, rom=None, clear_rom=False, skip_upload=False):
         stdscr.clear()
         debugger.update_source(dbg_source or self.dbg_source)
         if clear_rom:
             stdscr.addstr("Clearing ROM...")
             stdscr.refresh()
-            self.clear_rom()
+            self.clear_rom(rom)
             stdscr.addstr("\n")
         stdscr.addstr("Uploading ROM...")
         stdscr.refresh()
-        debugger.upload_rom(rom or self.rom)
+        if not skip_upload:
+            debugger.upload_rom(rom or self.rom)
         debugger.reset()
         if dbg_source:
             self.dbg_source = dbg_source
@@ -193,8 +194,8 @@ class Debugger:
             stdscr.refresh()
         stdscr.addstr("\n")
 
-    def clear_rom(self):
-        for i in range(0, 0x2000, 16):
+    def clear_rom(self, rom):
+        for i in range(0, len(rom), 16):
             request = ('w %d 16 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0' % i)
             self.send(request)
             self.recv()
@@ -316,6 +317,9 @@ class CodeScreen:
                 self.window.addstr("S")
         else:
             self.window.addstr("???")
+
+        if len(debugger.registers) >= 17:
+            self.window.addstr(" Bk:%d" % debugger.registers[16])
 
         self.window.move(rows - 2, 0)
         self.window.clrtoeol()
@@ -517,6 +521,7 @@ parser.add_argument('-p', '--serial-port', required=True)
 parser.add_argument('-r', '--run', action='store_true')
 parser.add_argument('-l', '--log', action='store_true')
 parser.add_argument('-c', '--clear-rom', action='store_true')
+parser.add_argument('-U', '--skip-upload', action='store_true')
 args = parser.parse_args()
 
 dbg_source, rom = compile_source(args.source)
@@ -527,7 +532,7 @@ debugger.open_communication(args.serial_port)
 stdscr = curses.initscr()
 curses.start_color()
 
-debugger.initialize(dbg_source, rom, args.clear_rom)
+debugger.initialize(dbg_source, rom, args.clear_rom, args.skip_upload)
 del rom
 
 wrapper(run_ui)
