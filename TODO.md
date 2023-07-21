@@ -55,6 +55,12 @@
 - [x] Serial (syscall)
 - [x] Bankswitching (syscall)
 
+### Hardware
+
+- [x] Bankswitching circuit
+- [ ] RAM only circuit
+- [ ] Add A16, A17, A18 lines to debugger
+
 --
 
 # Version C - SD Card

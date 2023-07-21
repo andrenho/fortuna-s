@@ -340,6 +340,14 @@
     [
       "1b77a345-376d-431f-845a-acabb619ee65",
       "Debugger"
+    ],
+    [
+      "d4082d08-879a-4830-8eba-96c650883a9b",
+      "Memory"
+    ],
+    [
+      "a4d6eea3-9933-4e7e-a558-065866745859",
+      "Peripheral"
     ]
   ],
   "text_variables": {}
