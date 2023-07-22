@@ -8,7 +8,7 @@ typedef enum {
 } Pin;
 
 // uncomment next define to debug Z80 states between cycles
-#define PRINT_STATE() // printState()
+#define PRINT_STATE() printState()
 
 #define N_BKPS 16
 int breakpoints[N_BKPS] = { -1 };
