@@ -4,7 +4,7 @@
 	; Initialization
 	;
 
-	ld	a, 1
+	ld	a, 0xf
 	out	(0), a
 	jp	init
 
