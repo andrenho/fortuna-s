@@ -5,7 +5,7 @@
 	;
 
 	ld	a, 0x7
-	out	(0), a
+	out	(1), a
 	jp	init
 
 	;

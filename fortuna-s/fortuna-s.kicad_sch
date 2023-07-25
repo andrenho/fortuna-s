@@ -1725,7 +1725,7 @@
     (uuid feb98129-907d-44cb-b28f-46ec723b67b8)
   )
 
-  (rectangle (start 25.4 146.685) (end 118.11 193.675)
+  (rectangle (start 25.4 146.685) (end 116.205 193.675)
     (stroke (width 0.3) (type default))
     (fill (type none))
     (uuid 034400b5-db54-4ef2-8d42-df5a20226cbc)
@@ -1760,7 +1760,7 @@
     (uuid 497ffa72-a49a-4466-ac34-c1120e17cc33)
   )
   (text_box "ATMega8\n(SDCard)"
-    (at 100.33 171.45 0) (size 10.16 21.59)
+    (at 81.915 172.085 0) (size 8.255 19.685)
     (stroke (width 0) (type default))
     (fill (type none))
     (effects (font (size 1.27 1.27)))
@@ -1774,21 +1774,21 @@
     (uuid 63dd6cb4-af57-4ade-809c-a2343d39c61e)
   )
   (text_box "SDCard"
-    (at 82.55 173.99 0) (size 12.7 20.32)
+    (at 92.075 172.085 0) (size 12.7 21.59)
     (stroke (width 0) (type default))
     (fill (type none))
     (effects (font (size 1.27 1.27)))
     (uuid 642b0289-e287-4ba7-a814-f0b5f3ed132f)
   )
   (text_box "74HCT138\n(demux)"
-    (at 71.12 168.91 0) (size 8.89 10.16)
+    (at 70.485 168.91 0) (size 8.89 10.16)
     (stroke (width 0) (type default))
     (fill (type none))
     (effects (font (size 1.27 1.27)))
     (uuid 6841ca39-facd-4a22-af53-0410b0b8e5a7)
   )
   (text_box "VGA\nadaptor"
-    (at 100.33 146.05 0) (size 17.78 13.97)
+    (at 99.06 146.05 0) (size 17.78 13.97)
     (stroke (width 0) (type default))
     (fill (type none))
     (effects (font (size 1.27 1.27)))
@@ -1802,7 +1802,7 @@
     (uuid 7811d28a-58c3-417d-b2e2-608dcb46362e)
   )
   (text_box "LED"
-    (at 96.52 184.15 0) (size 2.54 8.89)
+    (at 106.045 184.785 0) (size 2.54 8.89)
     (stroke (width 0) (type default))
     (fill (type none))
     (effects (font (size 1.27 1.27)))
@@ -1837,14 +1837,14 @@
     (uuid ca74dcfe-d1da-44ff-befd-0efd015240f9)
   )
   (text_box "PI Pico\n(VGA)"
-    (at 83.82 146.05 0) (size 12.7 25.4)
+    (at 83.82 146.05 0) (size 12.7 24.765)
     (stroke (width 0) (type default))
     (fill (type none))
     (effects (font (size 1.27 1.27)))
     (uuid d59f5a2f-73a1-4ac9-8d34-1c12e290fb68)
   )
   (text_box "74HC74\n(flipflop)"
-    (at 71.12 181.61 0) (size 8.89 10.16)
+    (at 70.485 181.61 0) (size 8.89 10.16)
     (stroke (width 0) (type default))
     (fill (type none))
     (effects (font (size 1.27 1.27)))
